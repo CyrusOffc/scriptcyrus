@@ -144,6 +144,7 @@ local GameScripts = {
     [9363735110] = "https://raw.githubusercontent.com/CyrusOffc/scriptcyrus/refs/heads/main/roblox/etfb.lua",
     [9649298941] = "https://raw.githubusercontent.com/CyrusOffc/scriptcyrus/refs/heads/main/roblox/slfb.lua",
     [7709344486] = "https://raw.githubusercontent.com/CyrusOffc/scriptcyrus/refs/heads/main/roblox/sab.lua",
+    [9509842868] = "https://raw.githubusercontent.com/CyrusOffc/scriptcyrus/refs/heads/main/roblox/gh.lua",
 }
 
 -- ================= MAIN FLOW =================
