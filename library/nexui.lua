@@ -144,15 +144,26 @@ function NexusUI:CreateWindow(cfg)
         ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
         IgnoreGuiInset = true,
     })
-    pcall(function() SG.Parent = CoreGui end)
-    if not SG.Parent then SG.Parent = Player:WaitForChild("PlayerGui") end
+    -- Safe parent: gethui() > CoreGui > PlayerGui
+    local function safeParent(gui)
+        if typeof(gethui) == "function" then
+            pcall(function() gui.Parent = gethui() end)
+        end
+        if not gui.Parent or gui.Parent == nil then
+            pcall(function() gui.Parent = game:GetService("CoreGui") end)
+        end
+        if not gui.Parent or gui.Parent == nil then
+            gui.Parent = Player:WaitForChild("PlayerGui")
+        end
+    end
+    safeParent(SG)
 
-    -- Close popups when clicking outside
-    SG.InputBegan:Connect(function(i)
+    -- Close popups when clicking outside (UserInputService, not SG.InputBegan)
+    UserInputService.InputBegan:Connect(function(i, gp)
+        if gp then return end
         if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
             for _, popup in ipairs(OpenPopups) do
-                if popup and popup.Parent then
-                    -- check if click was outside popup
+                if popup and popup.Parent and popup.Visible then
                     local abs = popup.AbsolutePosition
                     local sz  = popup.AbsoluteSize
                     local pos = i.Position
