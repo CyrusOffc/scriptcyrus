@@ -1,13 +1,7 @@
 --[[
     ============================================================
-    DARK SKY UI LIBRARY  v6.2  (FULL FIXED)
+    DARK SKY UI LIBRARY  v6.3  (RESPONSIVE + DROPDOWN FIX)
     ============================================================
-    
-    FIX:
-    - Section tidak panjang nganggur (AutomaticSize + ClipsDescendants)
-    - Support 2 kolom pakai AddColumn(0.5)
-    - Float button toggle dengan RightShift
-    - CanvasSize manual (gak pake AutomaticCanvasSize di parent)
     
     -- CARA PAKAI --
     
@@ -16,23 +10,21 @@
     local win = Library:CreateWindow({
         Title = "MY SCRIPT HUB",
         Subtitle = "v1.0 | By Cyrus",
-        Width = 620, Height = 420,
+        Width = 600, Height = 420,
         ToggleKey = Enum.KeyCode.RightShift,
-        ShowFloatButton = false,   -- true = tampil dari awal
+        ShowFloatButton = false,
     })
     
     local grp = win:AddNavGroup("FEATURES")
     local page = grp:AddPage({ Name = "Combat", Icon = "rbxassetid://10734975692" })
     
-    -- 2 KOLOM
-    local leftCol  = page:AddColumn(0.5)
-    local rightCol = page:AddColumn(0.5)
+    local left  = page:AddColumn(0.5)
+    local right = page:AddColumn(0.5)
     
-    local s1 = leftCol:AddSection({ Name = "Auto Combat", Icon = "rbxassetid://10734975692" })
-    s1:AddToggle({ Name = "Speed Hack", Description = "Kecepatan ekstra", Callback = function(v) end })
-    s1:AddButton({ Name = "Reset", Callback = function() end })
+    local s1 = left:AddSection({ Name = "Auto Combat" })
+    s1:AddToggle({ Name = "Speed Hack", Callback = function(v) end })
     
-    local s2 = rightCol:AddSection({ Name = "Filters" })
+    local s2 = right:AddSection({ Name = "Filters" })
     s2:AddDropdown({ Name = "Type", Options = {"A","B"}, Callback = function(v) end })
     ============================================================
 ]]
@@ -223,7 +215,7 @@ local function ico(parent, icon, size, pos, color, z, anchor)
 end
 
 -- ══════════════════════════════════════════════════════════════
--- SEARCH DROPDOWN
+-- SEARCH DROPDOWN (FIXED: min width 180, no shrink)
 -- ══════════════════════════════════════════════════════════════
 local activeDropdown = nil
 
@@ -286,7 +278,7 @@ local function createSearchDropdown(gui, selBox, opts, def, cb, isMulti)
         if overlay then
             local ov = overlay
             overlay = nil
-            tw(ov, { Size = UDim2.new(0, selBox.AbsoluteSize.X, 0, 0) }, 0.16)
+            tw(ov, { Size = UDim2.new(0, ov.AbsoluteSize.X, 0, 0) }, 0.16)
             task.delay(0.16, function()
                 pcall(function() ov:Destroy() end)
             end)
@@ -297,17 +289,31 @@ local function createSearchDropdown(gui, selBox, opts, def, cb, isMulti)
     local function buildList()
         if overlay then overlay:Destroy() end
 
-        local maxH = math.min(#opts * 26 + 38, 180)
-        local screenH = gui.AbsoluteSize.Y
-        local spaceBelow = screenH - (selBox.AbsolutePosition.Y + selBox.AbsoluteSize.Y)
-        local openUp = spaceBelow < maxH + 12
+        -- FIX: minimum width 200px biar gak mengecil
+        local MIN_W = 200
+        local boxW = math.max(selBox.AbsoluteSize.X, MIN_W)
+        local maxH = math.min(#opts * 26 + 38, 200)
+
+        -- FIX: cek posisi biar gak keluar layar
+        local vp = gui.AbsoluteSize
+        local openUp = false
+        local spaceBelow = vp.Y - (selBox.AbsolutePosition.Y + selBox.AbsoluteSize.Y)
+        if spaceBelow < maxH + 12 then openUp = true end
+
         local posY = openUp
             and (selBox.AbsolutePosition.Y - maxH - 4)
             or  (selBox.AbsolutePosition.Y + selBox.AbsoluteSize.Y + 4)
 
+        -- FIX: cek posisi X biar gak keluar kanan
+        local posX = selBox.AbsolutePosition.X
+        if posX + boxW > vp.X - 8 then
+            posX = vp.X - boxW - 8
+        end
+        if posX < 8 then posX = 8 end
+
         overlay = mk("Frame", {
-            Size = UDim2.new(0, selBox.AbsoluteSize.X, 0, 0),
-            Position = UDim2.new(0, selBox.AbsolutePosition.X, 0, posY),
+            Size = UDim2.new(0, boxW, 0, 0),
+            Position = UDim2.new(0, posX, 0, posY),
             BackgroundColor3 = T.BG2,
             BorderSizePixel = 0,
             Visible = true,
@@ -451,7 +457,7 @@ local function createSearchDropdown(gui, selBox, opts, def, cb, isMulti)
         end)
 
         render("")
-        return overlay
+        return overlay, boxW, maxH
     end
 
     local clicker = mk("TextButton", {
@@ -471,10 +477,9 @@ local function createSearchDropdown(gui, selBox, opts, def, cb, isMulti)
             end
             opened = true
             activeDropdown = dd
-            local ov = buildList()
-            local maxH = math.min(#opts * 26 + 38, 180)
-            ov.Size = UDim2.new(0, selBox.AbsoluteSize.X, 0, 0)
-            tw(ov, {Size = UDim2.new(0, selBox.AbsoluteSize.X, 0, maxH)}, 0.24, T.EaseB)
+            local ov, boxW, maxH = buildList()
+            ov.Size = UDim2.new(0, boxW, 0, 0)
+            tw(ov, {Size = UDim2.new(0, boxW, 0, maxH)}, 0.24, T.EaseB)
             tw(arrow, {Rotation = 180}, 0.18)
         end
     end)
@@ -528,7 +533,7 @@ function Library:CreateWindow(cfg)
     local W_WIDTH  = cfg.Width  or 620
     local W_HEIGHT = cfg.Height or 420
     local title    = cfg.Title    or "LIBRARY UI"
-    local subtitle = cfg.Subtitle or "v6.2 | Dark Sky Pro"
+    local subtitle = cfg.Subtitle or "v6.3 | Dark Sky Pro"
     local togKey   = cfg.ToggleKey or Enum.KeyCode.RightShift
     local showFloat = cfg.ShowFloatButton or false
 
@@ -611,8 +616,9 @@ function Library:CreateWindow(cfg)
         ZIndex = 14,
     }, Hdr)
 
+    -- Search di header (dibikin opsional biar gak ambil space)
     local SearchBG = mk("Frame", {
-        Size = UDim2.new(0, 150, 0, 22),
+        Size = UDim2.new(0, 0, 0, 22),  -- 0 width by default, di-resize nanti
         Position = UDim2.new(1, -195, 0.5, -11),
         BackgroundColor3 = T.BG0,
         ZIndex = 14,
@@ -621,7 +627,7 @@ function Library:CreateWindow(cfg)
     brdr(SearchBG, T.BG5, 1)
     ico(SearchBG, Icons.search, UDim2.new(0, 11, 0, 11), UDim2.new(0, 7, 0.5, 0), T.Sky, 15)
 
-    mk("TextBox", {
+    local HeaderSearch = mk("TextBox", {
         Size = UDim2.new(1, -28, 1, 0),
         Position = UDim2.new(0, 24, 0, 0),
         BackgroundTransparency = 1,
@@ -827,7 +833,7 @@ function Library:CreateWindow(cfg)
         tw(MinBtn, {BackgroundColor3 = T.Gold}, 0.14)
     end)
 
-    -- TOGGLE KEY (munculin float button)
+    -- TOGGLE KEY
     UIS.InputBegan:Connect(function(inp, gpe)
         if gpe then return end
         if inp.KeyCode == togKey then
@@ -842,6 +848,55 @@ function Library:CreateWindow(cfg)
             BackgroundTransparency = 0,
         }, 0.45, T.EaseB)
     end)
+
+    -- ══════════════════════════════════════════════════════════
+    -- FIX RESIZE: Recalculate ContentArea + Clamp Window
+    -- ══════════════════════════════════════════════════════════
+    local function recalcLayout()
+        if Main.AbsoluteSize.Y <= 40 then return end
+        ContentArea.Size = UDim2.new(1, -NavW, 1, -38)
+        NavPan.Size = UDim2.new(0, NavW, 1, -38)
+        -- Header search visible only if enough width
+        if W_WIDTH >= 520 then
+            SearchBG.Size = UDim2.new(0, 150, 0, 22)
+        else
+            SearchBG.Size = UDim2.new(0, 0, 0, 22)
+        end
+    end
+
+    local function clampWindow()
+        task.wait()
+        local vp = workspace.CurrentCamera.ViewportSize
+        local wp = Main.AbsolutePosition
+        local ws = Main.AbsoluteSize
+
+        local newX, newY = wp.X, wp.Y
+        if wp.X + ws.X > vp.X then newX = vp.X - ws.X - 10 end
+        if wp.Y + ws.Y > vp.Y then newY = vp.Y - ws.Y - 10 end
+        if newX < 10 then newX = 10 end
+        if newY < 10 then newY = 10 end
+
+        if math.abs(newX - wp.X) > 1 or math.abs(newY - wp.Y) > 1 then
+            tw(Main, { Position = UDim2.new(0, newX, 0, newY) }, 0.22)
+        end
+    end
+
+    Main:GetPropertyChangedSignal("AbsoluteSize"):Connect(recalcLayout)
+    Main:GetPropertyChangedSignal("AbsolutePosition"):Connect(function()
+        task.delay(0.05, clampWindow)
+    end)
+    workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(function()
+        task.delay(0.1, clampWindow)
+    end)
+    MinBtn.MouseButton1Click:Connect(function()
+        task.delay(0.35, clampWindow)
+    end)
+    task.spawn(function()
+        task.wait(0.6)
+        recalcLayout()
+        clampWindow()
+    end)
+    -- ══════════════════════════════════════════════════════════
 
     -- NOTIFY
     function win:Notify(cfg2)
@@ -937,7 +992,7 @@ function Library:CreateWindow(cfg)
         end)
     end
 
-    -- TOGGLE (munculin float button)
+    -- TOGGLE
     function win:Toggle()
         if win._open then
             win._open = false
@@ -1039,7 +1094,6 @@ function Library:CreateWindow(cfg)
             }, ContentArea)
             pad(pgScroll, 8, 10, 8, 10)
 
-            -- COLUMN HOLDER (pakai UIGridLayout 2 kolom)
             local colHolder = mk("Frame", {
                 Size = UDim2.new(1, 0, 0, 0),
                 AutomaticSize = Enum.AutomaticSize.Y,
@@ -1047,8 +1101,9 @@ function Library:CreateWindow(cfg)
                 ZIndex = 12,
             }, pgScroll)
 
+            -- FIX: UIGridLayout CellSize handle width scale
             local grid = mk("UIGridLayout", {
-                CellSize = UDim2.new(0.5, -4, 0, 0),
+                CellSize = UDim2.new(0.5, -5, 0, 0),
                 CellPadding = UDim2.new(0, 8, 0, 6),
                 SortOrder = Enum.SortOrder.LayoutOrder,
                 FillDirectionMaxCells = 2,
@@ -1056,7 +1111,7 @@ function Library:CreateWindow(cfg)
                 VerticalAlignment = Enum.VerticalAlignment.Top,
             }, colHolder)
 
-            -- Update canvas size ketika ada / hilang child
+            -- FIX: updateCanvas dengan cek width juga
             local function updateCanvas()
                 task.wait()
                 local maxY = 0
@@ -1067,19 +1122,27 @@ function Library:CreateWindow(cfg)
                         if rel > maxY then maxY = rel end
                     end
                 end
-                pgScroll.CanvasSize = UDim2.new(0, 0, 0, maxY + 20)
+                pgScroll.CanvasSize = UDim2.new(0, 0, 0, maxY + 30)
             end
 
             colHolder.ChildAdded:Connect(updateCanvas)
             colHolder.ChildRemoved:Connect(updateCanvas)
+
+            -- FIX: Auto-recalc tiap 0.25s biar responsive
             task.spawn(function()
                 while pgScroll.Parent do
-                    task.wait(0.3)
-                    updateCanvas()
+                    task.wait(0.25)
+                    if pgScroll.Visible then
+                        updateCanvas()
+                    end
                 end
             end)
 
-            -- Column = wrapper frame
+            -- FIX: recalc saat window resize
+            Main:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
+                task.delay(0.05, updateCanvas)
+            end)
+
             local columnCount = 0
             local columns = {}
 
@@ -1172,7 +1235,6 @@ function Library:CreateWindow(cfg)
                     rnd(colBtn, 5)
                     local colIcon = ico(colBtn, Icons.minimize, UDim2.new(0.55,0,0.55,0), UDim2.new(0.5,0,0.5,0), T.TextSub, 18, Vector2.new(0.5,0.5))
 
-                    -- CONTENT
                     local secCnt = mk("Frame", {
                         Size = UDim2.new(1, 0, 0, 0),
                         AutomaticSize = Enum.AutomaticSize.Y,
@@ -1935,7 +1997,6 @@ function Library:CreateWindow(cfg)
         return group
     end
 
-    -- Show float button from start (opsional)
     if showFloat then
         task.spawn(function()
             task.wait(0.6)
