@@ -1,16 +1,16 @@
 --[[
 ╔══════════════════════════════════════════════════════════════╗
-║                    ✦ CyrusUI v3.0 ✦                          ║
-║              Fully Custom Premium Roblox UI                  ║
+║                ✦ CyrusUI v4.0 ✦                              ║
+║           Blue & Gold Luxury Edition                         ║
 ║                                                              ║
-║  ✓ 100% Custom Made (No Fork)                                ║
+║  ✓ Royal Blue + Gold Premium Theme                           ║
+║  ✓ Section Headers dengan Accent Bar                         ║
+║  ✓ Fixed Dropdown Popup (No Clipping)                        ║
 ║  ✓ Smooth Spring Animations                                  ║
-║  ✓ Gradient Colors + Rich Text                               ║
-║  ✓ Floating Open/Close Button (Draggable)                    ║
+║  ✓ Rich Text + Gradients                                     ║
 ║  ✓ Search in Dropdown                                        ║
-║  ✓ Rounded Corners Everywhere                                ║
-║  ✓ Support All Executors (Mobile + PC)                       ║
-║  ✓ Anti-AFK + Auto Protect GUI                               ║
+║  ✓ Draggable Float Button                                    ║
+║  ✓ Mobile + PC Support                                       ║
 ║                                                              ║
 ║  Discord: discord.gg/speedhubx                               ║
 ╚══════════════════════════════════════════════════════════════╝
@@ -21,14 +21,11 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
-local HttpService = game:GetService("HttpService")
 local VirtualUser = game:GetService("VirtualUser")
 local CoreGui = game:GetService("CoreGui")
-local Lighting = game:GetService("Lighting")
 
 local LP = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
-local Mouse = LP:GetMouse()
 
 -- ═══════════════ PROTECTION ═══════════════
 local ProtectGui = (syn and syn.protect_gui) or protectgui or function() end
@@ -43,129 +40,129 @@ if LP then
     end)
 end
 
--- Cleanup old instances
-for _, name in ipairs({"CyrusUI_Main", "CyrusUI_Float", "CyrusUI_Notify"}) do
+for _, name in ipairs({"CyrusUI_Main", "CyrusUI_Float"}) do
     pcall(function()
         local g = CoreGui:FindFirstChild(name)
         if g then g:Destroy() end
     end)
 end
 
--- ═══════════════ THEMES ═══════════════
+-- ═══════════════ THEMES — BLUE & GOLD FOCUS ═══════════════
 local Themes = {
-    Names = { "CyrusPurple", "CyrusRed", "CyrusBlue", "CyrusGreen", "CyrusPink", "CyrusDark" },
+    Names = { "RoyalBlue", "MidnightGold", "OceanGold", "SapphireGold", "CyberBlue" },
 
-    CyrusPurple = {
-        Name = "CyrusPurple",
-        Accent = Color3.fromRGB(155, 70, 255),
-        Accent2 = Color3.fromRGB(255, 100, 200),
-        BgMain = Color3.fromRGB(18, 14, 28),
-        BgSecondary = Color3.fromRGB(28, 22, 45),
-        BgElement = Color3.fromRGB(35, 28, 55),
-        BgHover = Color3.fromRGB(55, 42, 90),
-        Border = Color3.fromRGB(80, 60, 130),
-        BorderAccent = Color3.fromRGB(155, 70, 255),
-        Text = Color3.fromRGB(255, 255, 255),
-        SubText = Color3.fromRGB(180, 160, 220),
-        ToggleOn = Color3.fromRGB(155, 70, 255),
-        ToggleOff = Color3.fromRGB(60, 50, 85),
+    -- Royal Blue + Gold (DEFAULT)
+    RoyalBlue = {
+        Name = "RoyalBlue",
+        Accent = Color3.fromRGB(212, 175, 55),        -- Gold
+        Accent2 = Color3.fromRGB(255, 215, 100),      -- Light Gold
+        Primary = Color3.fromRGB(30, 90, 200),        -- Royal Blue
+        Primary2 = Color3.fromRGB(60, 130, 240),      -- Light Blue
+        BgMain = Color3.fromRGB(10, 18, 38),
+        BgSecondary = Color3.fromRGB(16, 28, 55),
+        BgElement = Color3.fromRGB(22, 38, 72),
+        BgHover = Color3.fromRGB(35, 55, 100),
+        Border = Color3.fromRGB(45, 75, 130),
+        BorderAccent = Color3.fromRGB(212, 175, 55),
+        Text = Color3.fromRGB(240, 245, 255),
+        SubText = Color3.fromRGB(160, 185, 225),
+        ToggleOn = Color3.fromRGB(212, 175, 55),
+        ToggleOff = Color3.fromRGB(45, 65, 105),
+        SectionBg = Color3.fromRGB(18, 32, 62),
     },
 
-    CyrusRed = {
-        Name = "CyrusRed",
-        Accent = Color3.fromRGB(255, 55, 80),
-        Accent2 = Color3.fromRGB(255, 140, 60),
-        BgMain = Color3.fromRGB(22, 12, 15),
-        BgSecondary = Color3.fromRGB(35, 18, 22),
-        BgElement = Color3.fromRGB(48, 25, 30),
-        BgHover = Color3.fromRGB(75, 35, 42),
-        Border = Color3.fromRGB(110, 55, 65),
-        BorderAccent = Color3.fromRGB(255, 55, 80),
-        Text = Color3.fromRGB(255, 255, 255),
-        SubText = Color3.fromRGB(230, 180, 190),
-        ToggleOn = Color3.fromRGB(255, 55, 80),
-        ToggleOff = Color3.fromRGB(75, 45, 50),
+    -- Midnight Navy + Gold
+    MidnightGold = {
+        Name = "MidnightGold",
+        Accent = Color3.fromRGB(255, 195, 60),
+        Accent2 = Color3.fromRGB(255, 225, 140),
+        Primary = Color3.fromRGB(15, 35, 80),
+        Primary2 = Color3.fromRGB(40, 80, 150),
+        BgMain = Color3.fromRGB(6, 12, 28),
+        BgSecondary = Color3.fromRGB(12, 22, 48),
+        BgElement = Color3.fromRGB(18, 32, 65),
+        BgHover = Color3.fromRGB(30, 50, 95),
+        Border = Color3.fromRGB(35, 60, 110),
+        BorderAccent = Color3.fromRGB(255, 195, 60),
+        Text = Color3.fromRGB(245, 250, 255),
+        SubText = Color3.fromRGB(150, 175, 220),
+        ToggleOn = Color3.fromRGB(255, 195, 60),
+        ToggleOff = Color3.fromRGB(40, 55, 90),
+        SectionBg = Color3.fromRGB(14, 26, 55),
     },
 
-    CyrusBlue = {
-        Name = "CyrusBlue",
-        Accent = Color3.fromRGB(60, 150, 255),
-        Accent2 = Color3.fromRGB(120, 220, 255),
-        BgMain = Color3.fromRGB(12, 18, 28),
-        BgSecondary = Color3.fromRGB(20, 30, 45),
-        BgElement = Color3.fromRGB(28, 42, 62),
-        BgHover = Color3.fromRGB(45, 65, 95),
-        Border = Color3.fromRGB(60, 90, 140),
-        BorderAccent = Color3.fromRGB(60, 150, 255),
-        Text = Color3.fromRGB(255, 255, 255),
-        SubText = Color3.fromRGB(170, 200, 240),
-        ToggleOn = Color3.fromRGB(60, 150, 255),
-        ToggleOff = Color3.fromRGB(50, 70, 100),
+    -- Ocean Blue + Gold
+    OceanGold = {
+        Name = "OceanGold",
+        Accent = Color3.fromRGB(230, 180, 70),
+        Accent2 = Color3.fromRGB(255, 215, 120),
+        Primary = Color3.fromRGB(20, 100, 180),
+        Primary2 = Color3.fromRGB(50, 150, 220),
+        BgMain = Color3.fromRGB(8, 22, 42),
+        BgSecondary = Color3.fromRGB(14, 34, 62),
+        BgElement = Color3.fromRGB(20, 46, 82),
+        BgHover = Color3.fromRGB(35, 65, 115),
+        Border = Color3.fromRGB(40, 80, 140),
+        BorderAccent = Color3.fromRGB(230, 180, 70),
+        Text = Color3.fromRGB(240, 248, 255),
+        SubText = Color3.fromRGB(155, 195, 235),
+        ToggleOn = Color3.fromRGB(230, 180, 70),
+        ToggleOff = Color3.fromRGB(45, 70, 115),
+        SectionBg = Color3.fromRGB(16, 38, 70),
     },
 
-    CyrusGreen = {
-        Name = "CyrusGreen",
-        Accent = Color3.fromRGB(50, 230, 140),
-        Accent2 = Color3.fromRGB(150, 255, 200),
-        BgMain = Color3.fromRGB(10, 22, 18),
-        BgSecondary = Color3.fromRGB(18, 35, 28),
-        BgElement = Color3.fromRGB(25, 48, 38),
-        BgHover = Color3.fromRGB(40, 75, 60),
-        Border = Color3.fromRGB(55, 110, 85),
-        BorderAccent = Color3.fromRGB(50, 230, 140),
-        Text = Color3.fromRGB(255, 255, 255),
-        SubText = Color3.fromRGB(170, 240, 200),
-        ToggleOn = Color3.fromRGB(50, 230, 140),
-        ToggleOff = Color3.fromRGB(45, 75, 60),
+    -- Sapphire + Gold
+    SapphireGold = {
+        Name = "SapphireGold",
+        Accent = Color3.fromRGB(220, 180, 80),
+        Accent2 = Color3.fromRGB(255, 220, 130),
+        Primary = Color3.fromRGB(50, 30, 130),
+        Primary2 = Color3.fromRGB(90, 70, 200),
+        BgMain = Color3.fromRGB(12, 10, 32),
+        BgSecondary = Color3.fromRGB(22, 18, 52),
+        BgElement = Color3.fromRGB(32, 26, 72),
+        BgHover = Color3.fromRGB(48, 40, 100),
+        Border = Color3.fromRGB(55, 45, 120),
+        BorderAccent = Color3.fromRGB(220, 180, 80),
+        Text = Color3.fromRGB(245, 245, 255),
+        SubText = Color3.fromRGB(170, 165, 220),
+        ToggleOn = Color3.fromRGB(220, 180, 80),
+        ToggleOff = Color3.fromRGB(55, 45, 100),
+        SectionBg = Color3.fromRGB(26, 22, 62),
     },
 
-    CyrusPink = {
-        Name = "CyrusPink",
-        Accent = Color3.fromRGB(255, 90, 180),
-        Accent2 = Color3.fromRGB(255, 160, 220),
-        BgMain = Color3.fromRGB(28, 12, 22),
-        BgSecondary = Color3.fromRGB(45, 20, 35),
-        BgElement = Color3.fromRGB(62, 28, 48),
-        BgHover = Color3.fromRGB(95, 45, 75),
-        Border = Color3.fromRGB(140, 60, 110),
-        BorderAccent = Color3.fromRGB(255, 90, 180),
-        Text = Color3.fromRGB(255, 255, 255),
-        SubText = Color3.fromRGB(245, 190, 220),
-        ToggleOn = Color3.fromRGB(255, 90, 180),
-        ToggleOff = Color3.fromRGB(95, 55, 80),
-    },
-
-    CyrusDark = {
-        Name = "CyrusDark",
-        Accent = Color3.fromRGB(180, 180, 200),
-        Accent2 = Color3.fromRGB(230, 230, 250),
-        BgMain = Color3.fromRGB(12, 12, 15),
-        BgSecondary = Color3.fromRGB(20, 20, 25),
-        BgElement = Color3.fromRGB(30, 30, 38),
-        BgHover = Color3.fromRGB(45, 45, 58),
-        Border = Color3.fromRGB(70, 70, 85),
-        BorderAccent = Color3.fromRGB(180, 180, 200),
-        Text = Color3.fromRGB(255, 255, 255),
-        SubText = Color3.fromRGB(180, 180, 200),
-        ToggleOn = Color3.fromRGB(180, 180, 200),
-        ToggleOff = Color3.fromRGB(60, 60, 75),
+    -- Cyber Blue + Gold
+    CyberBlue = {
+        Name = "CyberBlue",
+        Accent = Color3.fromRGB(255, 200, 50),
+        Accent2 = Color3.fromRGB(255, 230, 130),
+        Primary = Color3.fromRGB(0, 130, 200),
+        Primary2 = Color3.fromRGB(0, 180, 255),
+        BgMain = Color3.fromRGB(5, 15, 30),
+        BgSecondary = Color3.fromRGB(10, 25, 45),
+        BgElement = Color3.fromRGB(15, 38, 65),
+        BgHover = Color3.fromRGB(25, 55, 95),
+        Border = Color3.fromRGB(25, 70, 115),
+        BorderAccent = Color3.fromRGB(255, 200, 50),
+        Text = Color3.fromRGB(240, 250, 255),
+        SubText = Color3.fromRGB(150, 200, 240),
+        ToggleOn = Color3.fromRGB(255, 200, 50),
+        ToggleOff = Color3.fromRGB(30, 60, 100),
+        SectionBg = Color3.fromRGB(12, 30, 55),
     },
 }
 
-local CurrentTheme = Themes.CyrusPurple
+local CurrentTheme = Themes.RoyalBlue
 
--- ═══════════════ SPRING ANIMATION ENGINE ═══════════════
+-- ═══════════════ SPRING ENGINE ═══════════════
 local Spring = {}
 Spring.__index = Spring
 
 function Spring.new(value, opts)
     opts = opts or {}
     return setmetatable({
-        Value = value,
-        Target = value,
-        Velocity = 0,
-        Freq = opts.frequency or 6,
-        Damp = opts.damping or 1,
+        Value = value, Target = value, Velocity = 0,
+        Freq = opts.frequency or 6, Damp = opts.damping or 1,
     }, Spring)
 end
 
@@ -196,40 +193,7 @@ function Spring:Update(dt)
     return false
 end
 
-function Spring:SetTarget(t)
-    self.Target = t
-end
-
--- ═══════════════ SIGNAL ═══════════════
-local Signal = {}
-Signal.__index = Signal
-
-function Signal.new()
-    return setmetatable({_c = {}, _t = {}}, Signal)
-end
-
-function Signal:Connect(fn)
-    local c = {fn = fn, active = true}
-    table.insert(self._c, c)
-    return {
-        Disconnect = function()
-            c.active = false
-            for i, x in pairs(self._c) do
-                if x == c then table.remove(self._c, i) return end
-            end
-        end
-    }
-end
-
-function Signal:Fire(...)
-    for _, c in pairs(self._c) do
-        if c.active then
-            task.spawn(c.fn, ...)
-        end
-    end
-end
-
--- ═══════════════ CREATOR ═══════════════
+-- ═══════════════ CREATOR HELPERS ═══════════════
 local Creator = { Connections = {} }
 
 function Creator.Connect(signal, fn)
@@ -247,12 +211,8 @@ end
 
 function Creator.New(class, props, children)
     local obj = Instance.new(class)
-    for k, v in pairs(props or {}) do
-        obj[k] = v
-    end
-    for _, child in ipairs(children or {}) do
-        child.Parent = obj
-    end
+    for k, v in pairs(props or {}) do obj[k] = v end
+    for _, child in ipairs(children or {}) do child.Parent = obj end
     return obj
 end
 
@@ -288,86 +248,17 @@ function Creator.Padding(parent, t, r, b, l)
     })
 end
 
--- ═══════════════ ANIMATION HELPER ═══════════════
+-- ═══════════════ ANIMATOR ═══════════════
 local Animator = {}
 local ActiveSprings = {}
 
-function Animator.Spring(instance, prop, target, freq, damp, callback)
-    local current = instance[prop]
-    local isUDim2 = typeof(current) == "UDim2"
-    local isColor = typeof(current) == "Color3"
-
-    local spring
-    if isUDim2 then
-        local springX = Spring.new(current.X.Offset, {frequency = freq or 6, damping = damp or 1})
-        local springY = Spring.new(current.Y.Offset, {frequency = freq or 6, damping = damp or 1})
-        local springXScale = Spring.new(current.X.Scale, {frequency = freq or 6, damping = damp or 1})
-        local springYScale = Spring.new(current.Y.Scale, {frequency = freq or 6, damping = damp or 1})
-        springX:SetTarget(target.X.Offset)
-        springY:SetTarget(target.Y.Offset)
-        springXScale:SetTarget(target.X.Scale)
-        springYScale:SetTarget(target.Y.Scale)
-
-        local conn
-        conn = RunService.RenderStepped:Connect(function(dt)
-            local done1 = springX:Update(dt)
-            local done2 = springY:Update(dt)
-            local done3 = springXScale:Update(dt)
-            local done4 = springYScale:Update(dt)
-            pcall(function()
-                instance[prop] = UDim2.new(springXScale.Value, springX.Value, springYScale.Value, springY.Value)
-            end)
-            if done1 and done2 and done3 and done4 then
-                conn:Disconnect()
-                if callback then callback() end
-            end
-        end)
-        table.insert(ActiveSprings, conn)
-    else
-        spring = Spring.new(current, {frequency = freq or 6, damping = damp or 1})
-        spring:SetTarget(target)
-        local conn
-        conn = RunService.RenderStepped:Connect(function(dt)
-            local done = spring:Update(dt)
-            pcall(function() instance[prop] = spring.Value end)
-            if done then
-                conn:Disconnect()
-                if callback then callback() end
-            end
-        end)
-        table.insert(ActiveSprings, conn)
-    end
-end
-
 function Animator.Tween(instance, props, time, style, dir)
     local tween = TweenService:Create(instance, TweenInfo.new(
-        time or 0.25,
-        style or Enum.EasingStyle.Quint,
-        dir or Enum.EasingDirection.Out
+        time or 0.25, style or Enum.EasingStyle.Quint, dir or Enum.EasingDirection.Out
     ), props)
     tween:Play()
     return tween
 end
-
--- ═══════════════ RICH TEXT HELPERS ═══════════════
-local RichText = {}
-
-function RichText.Gradient(text, colors, speed)
-    -- Static gradient (Roblox text supports rich text tags)
-    return string.format('<font color="rgb(%d,%d,%d)">%s</font>',
-        colors.R * 255, colors.G * 255, colors.B * 255, text)
-end
-
-function RichText.Pulse(text, c1, c2)
-    local t = (math.sin(tick() * 3) + 1) / 2
-    local r = math.floor((c1.R + (c2.R - c1.R) * t) * 255)
-    local g = math.floor((c1.G + (c2.G - c1.G) * t) * 255)
-    local b = math.floor((c1.B + (c2.B - c1.B) * t) * 255)
-    return string.format('<font color="rgb(%d,%d,%d)">%s</font>', r, g, b, text)
-end
-
-function RichText.Bold(text) return "<b>" .. text .. "</b>" end
-function RichText.Italic(text) return "<i>" .. text .. "</i>" end
 
 -- ═══════════════ MAIN GUI ═══════════════
 local MainGui = Creator.New("ScreenGui", {
@@ -380,7 +271,6 @@ local MainGui = Creator.New("ScreenGui", {
 
 pcall(ProtectGui, MainGui)
 
--- Parent to gethui / CoreGui
 local parentGui = CoreGui
 if gethui then pcall(function() parentGui = gethui() end) end
 MainGui.Parent = parentGui
@@ -418,8 +308,8 @@ local function Notify(config)
         ClipsDescendants = true,
         Parent = NotifHolder,
     })
-    Creator.Corner(notif, 12)
-    Creator.Stroke(notif, CurrentTheme.BorderAccent, 1.5, 0.4)
+    Creator.Corner(notif, 14)
+    Creator.Stroke(notif, CurrentTheme.Accent, 1.5, 0.4)
     Creator.Gradient(notif, CurrentTheme.BgSecondary, CurrentTheme.BgMain, 45)
 
     local accentBar = Creator.New("Frame", {
@@ -430,8 +320,9 @@ local function Notify(config)
         Parent = notif,
     })
     Creator.Corner(accentBar, 2)
+    Creator.Gradient(accentBar, CurrentTheme.Accent2, CurrentTheme.Accent, 90)
 
-    local titleLbl = Creator.New("TextLabel", {
+    Creator.New("TextLabel", {
         Size = UDim2.new(1, -70, 0, 20),
         Position = UDim2.new(0, 20, 0, 12),
         BackgroundTransparency = 1,
@@ -444,7 +335,7 @@ local function Notify(config)
         Parent = notif,
     })
 
-    local contentLbl = Creator.New("TextLabel", {
+    Creator.New("TextLabel", {
         Size = UDim2.new(1, -30, 0, 16),
         Position = UDim2.new(0, 20, 0, 34),
         BackgroundTransparency = 1,
@@ -518,8 +409,8 @@ end
 -- ═══════════════ FLOATING TOGGLE BUTTON ═══════════════
 local FloatBtn = Creator.New("ImageButton", {
     Name = "CyrusUI_Float",
-    Size = UDim2.new(0, 56, 0, 56),
-    Position = UDim2.new(0, 20, 0.5, -28),
+    Size = UDim2.new(0, 58, 0, 58),
+    Position = UDim2.new(0, 20, 0.5, -29),
     BackgroundColor3 = CurrentTheme.BgSecondary,
     BorderSizePixel = 0,
     Image = "rbxassetid://10709769598",
@@ -527,11 +418,11 @@ local FloatBtn = Creator.New("ImageButton", {
     AutoButtonColor = false,
     Parent = MainGui,
 })
-Creator.Corner(FloatBtn, 16)
-local floatStroke = Creator.Stroke(FloatBtn, CurrentTheme.Accent, 2, 0.2)
+Creator.Corner(FloatBtn, 18)
+Creator.Stroke(FloatBtn, CurrentTheme.Accent, 2, 0.2)
 Creator.Gradient(FloatBtn, CurrentTheme.Accent2, CurrentTheme.Accent, 45)
 
--- Pulsing glow ring
+-- Pulse ring
 local glow = Creator.New("Frame", {
     Size = UDim2.new(1, 8, 1, 8),
     Position = UDim2.new(0.5, -4, 0.5, -4),
@@ -539,23 +430,20 @@ local glow = Creator.New("Frame", {
     BackgroundTransparency = 1,
     Parent = FloatBtn,
 })
-Creator.Corner(glow, 20)
+Creator.Corner(glow, 22)
 local glowStroke = Creator.Stroke(glow, CurrentTheme.Accent, 2, 0.7)
 
--- Pulsing animation
 task.spawn(function()
     while FloatBtn.Parent do
-        Animator.Tween(glowStroke, {Transparency = 0.2}, 1, Enum.EasingStyle.Sine)
+        Animator.Tween(glowStroke, {Transparency = 0.1}, 1, Enum.EasingStyle.Sine)
         task.wait(1)
         Animator.Tween(glowStroke, {Transparency = 0.9}, 1, Enum.EasingStyle.Sine)
         task.wait(1)
     end
 end)
 
--- Float button drag
-local floatDragging = false
-local floatDragStart, floatStartPos
-
+-- Float drag
+local floatDragging, floatDragStart, floatStartPos
 FloatBtn.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
         floatDragging = true
@@ -575,34 +463,117 @@ UserInputService.InputChanged:Connect(function(input)
         local newX = floatStartPos.X.Offset + delta.X
         local newY = floatStartPos.Y.Offset + delta.Y
         local vp = Camera.ViewportSize
-        newX = math.clamp(newX, 0, vp.X - 56)
-        newY = math.clamp(newY, 0, vp.Y - 56)
+        newX = math.clamp(newX, 0, vp.X - 58)
+        newY = math.clamp(newY, 0, vp.Y - 58)
         FloatBtn.Position = UDim2.new(floatStartPos.X.Scale, newX, floatStartPos.Y.Scale, newY)
     end
 end)
 
--- ═══════════════ UI LIBRARY CORE ═══════════════
-local CyrusUI = {
-    Version = "3.0.0",
-    Theme = "CyrusPurple",
-    Window = nil,
-    MinimizeKey = Enum.KeyCode.RightControl,
-    ToggleButton = FloatBtn,
-    Options = {},
-    Signals = {},
-}
+-- ═══════════════ POPUP LAYER (Anti-clipping) ═══════════════
+local PopupLayer = Creator.New("Frame", {
+    Name = "PopupLayer",
+    Size = UDim2.new(1, 0, 1, 0),
+    BackgroundTransparency = 1,
+    ZIndex = 500,
+    Parent = MainGui,
+})
 
--- ═══════════════ DROPDOWN SEARCH ═══════════════
 -- ═══════════════ ELEMENT FACTORY ═══════════════
 local Element = {}
 Element.__index = Element
 
-function Element.new(container, scrollFrame, config)
-    local self = setmetatable({}, Element)
-    self.Container = container
-    self.ScrollFrame = scrollFrame
-    self.Config = config
-    return self
+-- Section with strong visual header
+function Element:AddSection(cfg)
+    if type(cfg) == "string" then cfg = {Title = cfg} end
+    cfg = cfg or {}
+    local title = cfg.Title or "Section"
+    local icon = cfg.Icon or "◆"
+
+    local sectionWrap = Creator.New("Frame", {
+        Size = UDim2.new(1, 0, 0, 40),
+        BackgroundTransparency = 1,
+        Parent = self.Container,
+    })
+
+    -- Section header
+    local header = Creator.New("Frame", {
+        Size = UDim2.new(1, 0, 0, 34),
+        BackgroundColor3 = CurrentTheme.SectionBg,
+        BorderSizePixel = 0,
+        Parent = sectionWrap,
+    })
+    Creator.Corner(header, 10)
+    Creator.Stroke(header, CurrentTheme.Accent, 1.5, 0.5)
+    Creator.Gradient(header, CurrentTheme.SectionBg, CurrentTheme.BgSecondary, 90)
+
+    -- Gold accent line on left
+    local accentBar = Creator.New("Frame", {
+        Size = UDim2.new(0, 4, 1, -8),
+        Position = UDim2.new(0, 6, 0, 4),
+        BackgroundColor3 = CurrentTheme.Accent,
+        BorderSizePixel = 0,
+        Parent = header,
+    })
+    Creator.Corner(accentBar, 2)
+    Creator.Gradient(accentBar, CurrentTheme.Accent2, CurrentTheme.Accent, 90)
+
+    -- Icon diamond
+    Creator.New("TextLabel", {
+        Size = UDim2.new(0, 20, 1, 0),
+        Position = UDim2.new(0, 14, 0, 0),
+        BackgroundTransparency = 1,
+        Text = icon,
+        TextColor3 = CurrentTheme.Accent,
+        TextSize = 12,
+        Font = Enum.Font.GothamBold,
+        Parent = header,
+    })
+
+    -- Section title
+    Creator.New("TextLabel", {
+        Size = UDim2.new(1, -50, 1, 0),
+        Position = UDim2.new(0, 34, 0, 0),
+        BackgroundTransparency = 1,
+        Text = title,
+        TextColor3 = CurrentTheme.Text,
+        TextSize = 14,
+        Font = Enum.Font.GothamBold,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        RichText = true,
+        Parent = header,
+    })
+
+    -- Divider line under section
+    local divider = Creator.New("Frame", {
+        Size = UDim2.new(1, -20, 0, 1),
+        Position = UDim2.new(0, 10, 0, 37),
+        BackgroundColor3 = CurrentTheme.Accent,
+        BackgroundTransparency = 0.85,
+        BorderSizePixel = 0,
+        Parent = sectionWrap,
+    })
+    Creator.Gradient(divider, CurrentTheme.Accent, CurrentTheme.Border, 0)
+
+    -- Inner container
+    local inner = Creator.New("Frame", {
+        Size = UDim2.new(1, 0, 0, 0),
+        Position = UDim2.new(0, 0, 0, 44),
+        BackgroundTransparency = 1,
+        AutomaticSize = Enum.AutomaticSize.Y,
+        Parent = sectionWrap,
+    })
+    Creator.New("UIListLayout", {
+        Padding = UDim.new(0, 6),
+        SortOrder = Enum.SortOrder.LayoutOrder,
+        Parent = inner,
+    })
+
+    inner:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
+        sectionWrap.Size = UDim2.new(1, 0, 0, inner.AbsoluteSize.Y + 50)
+    end)
+
+    local sectionObj = setmetatable({Container = inner, ScrollFrame = self.ScrollFrame}, Element)
+    return sectionObj
 end
 
 -- ───────────── BUTTON ─────────────
@@ -612,7 +583,7 @@ function Element:AddButton(cfg)
     local desc = cfg.Description
 
     local frame = Creator.New("Frame", {
-        Size = UDim2.new(1, 0, 0, desc and 60 or 42),
+        Size = UDim2.new(1, 0, 0, desc and 62 or 44),
         BackgroundColor3 = CurrentTheme.BgElement,
         BorderSizePixel = 0,
         Parent = self.Container,
@@ -620,9 +591,9 @@ function Element:AddButton(cfg)
     Creator.Corner(frame, 10)
     local stroke = Creator.Stroke(frame, CurrentTheme.Border, 1, 0.5)
 
-    local titleLbl = Creator.New("TextLabel", {
+    Creator.New("TextLabel", {
         Size = UDim2.new(1, -110, 0, desc and 18 or 20),
-        Position = UDim2.new(0, 14, 0, desc and 10 or 11),
+        Position = UDim2.new(0, 14, 0, desc and 11 or 12),
         BackgroundTransparency = 1,
         Text = title,
         TextColor3 = CurrentTheme.Text,
@@ -636,7 +607,7 @@ function Element:AddButton(cfg)
     if desc then
         Creator.New("TextLabel", {
             Size = UDim2.new(1, -110, 0, 16),
-            Position = UDim2.new(0, 14, 0, 30),
+            Position = UDim2.new(0, 14, 0, 32),
             BackgroundTransparency = 1,
             Text = desc,
             TextColor3 = CurrentTheme.SubText,
@@ -648,7 +619,7 @@ function Element:AddButton(cfg)
     end
 
     local btn = Creator.New("TextButton", {
-        Size = UDim2.new(0, 88, 0, 30),
+        Size = UDim2.new(0, 92, 0, 30),
         Position = UDim2.new(1, -100, 0.5, 0),
         AnchorPoint = Vector2.new(0, 0.5),
         BackgroundColor3 = CurrentTheme.Accent,
@@ -663,7 +634,7 @@ function Element:AddButton(cfg)
         Size = UDim2.new(1, 0, 1, 0),
         BackgroundTransparency = 1,
         Text = "Execute",
-        TextColor3 = CurrentTheme.Text,
+        TextColor3 = Color3.fromRGB(20, 20, 30),
         TextSize = 12,
         Font = Enum.Font.GothamBold,
         Parent = btn,
@@ -688,7 +659,7 @@ function Element:AddButton(cfg)
         end
     end)
 
-    return {Frame = frame, SetTitle = function(t) titleLbl.Text = t end}
+    return {Frame = frame}
 end
 
 -- ───────────── TOGGLE ─────────────
@@ -699,7 +670,7 @@ function Element:AddToggle(cfg)
     local value = cfg.Default or false
 
     local frame = Creator.New("Frame", {
-        Size = UDim2.new(1, 0, 0, desc and 58 or 42),
+        Size = UDim2.new(1, 0, 0, desc and 60 or 44),
         BackgroundColor3 = CurrentTheme.BgElement,
         BorderSizePixel = 0,
         Parent = self.Container,
@@ -709,20 +680,21 @@ function Element:AddToggle(cfg)
 
     Creator.New("TextLabel", {
         Size = UDim2.new(1, -70, 0, desc and 18 or 20),
-        Position = UDim2.new(0, 14, 0, desc and 10 or 11),
+        Position = UDim2.new(0, 14, 0, desc and 11 or 12),
         BackgroundTransparency = 1,
         Text = title,
         TextColor3 = CurrentTheme.Text,
         TextSize = 13,
         Font = Enum.Font.GothamMedium,
         TextXAlignment = Enum.TextXAlignment.Left,
+        RichText = true,
         Parent = frame,
     })
 
     if desc then
         Creator.New("TextLabel", {
             Size = UDim2.new(1, -70, 0, 16),
-            Position = UDim2.new(0, 14, 0, 30),
+            Position = UDim2.new(0, 14, 0, 32),
             BackgroundTransparency = 1,
             Text = desc,
             TextColor3 = CurrentTheme.SubText,
@@ -734,23 +706,23 @@ function Element:AddToggle(cfg)
     end
 
     local toggleBg = Creator.New("Frame", {
-        Size = UDim2.new(0, 40, 0, 20),
+        Size = UDim2.new(0, 42, 0, 22),
         Position = UDim2.new(1, -14, 0.5, 0),
         AnchorPoint = Vector2.new(1, 0.5),
         BackgroundColor3 = value and CurrentTheme.ToggleOn or CurrentTheme.ToggleOff,
         BorderSizePixel = 0,
         Parent = frame,
     })
-    Creator.Corner(toggleBg, 10)
+    Creator.Corner(toggleBg, 11)
 
     local toggleKnob = Creator.New("Frame", {
-        Size = UDim2.new(0, 16, 0, 16),
-        Position = value and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8),
+        Size = UDim2.new(0, 18, 0, 18),
+        Position = value and UDim2.new(1, -20, 0.5, -9) or UDim2.new(0, 2, 0.5, -9),
         BackgroundColor3 = Color3.fromRGB(255, 255, 255),
         BorderSizePixel = 0,
         Parent = toggleBg,
     })
-    Creator.Corner(toggleKnob, 8)
+    Creator.Corner(toggleKnob, 9)
 
     local hitArea = Creator.New("TextButton", {
         Size = UDim2.new(1, 0, 1, 0),
@@ -766,14 +738,10 @@ function Element:AddToggle(cfg)
         ToggleObj.Value = v
         Animator.Tween(toggleBg, {BackgroundColor3 = v and CurrentTheme.ToggleOn or CurrentTheme.ToggleOff}, 0.25)
         Animator.Tween(toggleKnob, {
-            Position = v and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
+            Position = v and UDim2.new(1, -20, 0.5, -9) or UDim2.new(0, 2, 0.5, -9)
         }, 0.25, Enum.EasingStyle.Quint)
-        if ToggleObj.Callback then
-            task.spawn(function() pcall(ToggleObj.Callback, v) end)
-        end
-        if ToggleObj.Changed then
-            task.spawn(function() pcall(ToggleObj.Changed, v) end)
-        end
+        if ToggleObj.Callback then task.spawn(function() pcall(ToggleObj.Callback, v) end) end
+        if ToggleObj.Changed then task.spawn(function() pcall(ToggleObj.Changed, v) end) end
     end
 
     ToggleObj.SetValue = setValue
@@ -801,7 +769,7 @@ function Element:AddSlider(cfg)
     local rounding = cfg.Rounding or 0
 
     local frame = Creator.New("Frame", {
-        Size = UDim2.new(1, 0, 0, 60),
+        Size = UDim2.new(1, 0, 0, 62),
         BackgroundColor3 = CurrentTheme.BgElement,
         BorderSizePixel = 0,
         Parent = self.Container,
@@ -811,7 +779,7 @@ function Element:AddSlider(cfg)
 
     Creator.New("TextLabel", {
         Size = UDim2.new(1, -70, 0, 18),
-        Position = UDim2.new(0, 14, 0, 8),
+        Position = UDim2.new(0, 14, 0, 9),
         BackgroundTransparency = 1,
         Text = title,
         TextColor3 = CurrentTheme.Text,
@@ -823,7 +791,7 @@ function Element:AddSlider(cfg)
 
     local valueLbl = Creator.New("TextLabel", {
         Size = UDim2.new(0, 60, 0, 18),
-        Position = UDim2.new(1, -14, 0, 8),
+        Position = UDim2.new(1, -14, 0, 9),
         AnchorPoint = Vector2.new(1, 0),
         BackgroundTransparency = 1,
         Text = tostring(default),
@@ -836,7 +804,7 @@ function Element:AddSlider(cfg)
 
     local sliderBg = Creator.New("Frame", {
         Size = UDim2.new(1, -28, 0, 6),
-        Position = UDim2.new(0, 14, 0, 40),
+        Position = UDim2.new(0, 14, 0, 42),
         BackgroundColor3 = CurrentTheme.BgHover,
         BorderSizePixel = 0,
         Parent = frame,
@@ -853,13 +821,13 @@ function Element:AddSlider(cfg)
     Creator.Gradient(fill, CurrentTheme.Accent2, CurrentTheme.Accent, 0)
 
     local knob = Creator.New("Frame", {
-        Size = UDim2.new(0, 14, 0, 14),
-        Position = UDim2.new((default - min) / (max - min), -7, 0.5, -7),
+        Size = UDim2.new(0, 16, 0, 16),
+        Position = UDim2.new((default - min) / (max - min), -8, 0.5, -8),
         BackgroundColor3 = CurrentTheme.Text,
         BorderSizePixel = 0,
         Parent = sliderBg,
     })
-    Creator.Corner(knob, 7)
+    Creator.Corner(knob, 8)
     Creator.Stroke(knob, CurrentTheme.Accent, 2, 0)
 
     local SliderObj = {Value = default, Callback = cfg.Callback, Changed = nil}
@@ -881,7 +849,7 @@ function Element:AddSlider(cfg)
         SliderObj.Value = v
         local rel = (v - min) / (max - min)
         Animator.Tween(fill, {Size = UDim2.new(rel, 0, 1, 0)}, 0.1)
-        Animator.Tween(knob, {Position = UDim2.new(rel, -7, 0.5, -7)}, 0.1)
+        Animator.Tween(knob, {Position = UDim2.new(rel, -8, 0.5, -8)}, 0.1)
         valueLbl.Text = tostring(v)
         if SliderObj.Callback then task.spawn(function() pcall(SliderObj.Callback, v) end) end
         if SliderObj.Changed then task.spawn(function() pcall(SliderObj.Changed, v) end) end
@@ -918,7 +886,7 @@ function Element:AddSlider(cfg)
     return SliderObj
 end
 
--- ───────────── DROPDOWN (WITH SEARCH) ─────────────
+-- ───────────── DROPDOWN (POPUP IN SEPARATE LAYER) ─────────────
 function Element:AddDropdown(cfg)
     cfg = cfg or {}
     local title = cfg.Title or "Dropdown"
@@ -928,18 +896,18 @@ function Element:AddDropdown(cfg)
     local value = cfg.Default or (multi and {} or nil)
 
     local frame = Creator.New("Frame", {
-        Size = UDim2.new(1, 0, 0, desc and 58 or 42),
+        Size = UDim2.new(1, 0, 0, desc and 60 or 44),
         BackgroundColor3 = CurrentTheme.BgElement,
         BorderSizePixel = 0,
         Parent = self.Container,
-        ZIndex = 2,
+        ZIndex = 3,
     })
     Creator.Corner(frame, 10)
     local stroke = Creator.Stroke(frame, CurrentTheme.Border, 1, 0.5)
 
-    local titleLbl = Creator.New("TextLabel", {
-        Size = UDim2.new(1, -160, 0, desc and 18 or 20),
-        Position = UDim2.new(0, 14, 0, desc and 10 or 11),
+    Creator.New("TextLabel", {
+        Size = UDim2.new(1, -170, 0, desc and 18 or 20),
+        Position = UDim2.new(0, 14, 0, desc and 11 or 12),
         BackgroundTransparency = 1,
         Text = title,
         TextColor3 = CurrentTheme.Text,
@@ -951,8 +919,8 @@ function Element:AddDropdown(cfg)
 
     if desc then
         Creator.New("TextLabel", {
-            Size = UDim2.new(1, -160, 0, 16),
-            Position = UDim2.new(0, 14, 0, 30),
+            Size = UDim2.new(1, -170, 0, 16),
+            Position = UDim2.new(0, 14, 0, 32),
             BackgroundTransparency = 1,
             Text = desc,
             TextColor3 = CurrentTheme.SubText,
@@ -971,7 +939,6 @@ function Element:AddDropdown(cfg)
         BorderSizePixel = 0,
         Text = "",
         AutoButtonColor = false,
-        ZIndex = 3,
         Parent = frame,
     })
     Creator.Corner(display, 8)
@@ -995,58 +962,57 @@ function Element:AddDropdown(cfg)
         Position = UDim2.new(1, -22, 0, 0),
         BackgroundTransparency = 1,
         Text = "▼",
-        TextColor3 = CurrentTheme.SubText,
+        TextColor3 = CurrentTheme.Accent,
         TextSize = 10,
         Font = Enum.Font.GothamBold,
         Parent = display,
     })
 
-    -- Dropdown popup
+    -- ── POPUP: attached to PopupLayer, not to frame ──
     local popup = Creator.New("Frame", {
         Size = UDim2.new(0, 200, 0, 0),
-        Position = UDim2.new(1, -14, 0, 36),
-        AnchorPoint = Vector2.new(1, 0),
+        Position = UDim2.new(0, 0, 0, 0),
         BackgroundColor3 = CurrentTheme.BgSecondary,
         BorderSizePixel = 0,
         ClipsDescendants = true,
         Visible = false,
-        ZIndex = 50,
-        Parent = frame,
+        ZIndex = 501,
+        Parent = PopupLayer,
     })
-    Creator.Corner(popup, 10)
-    Creator.Stroke(popup, CurrentTheme.BorderAccent, 1.5, 0.3)
+    Creator.Corner(popup, 12)
+    Creator.Stroke(popup, CurrentTheme.Accent, 1.5, 0.3)
     Creator.Gradient(popup, CurrentTheme.BgSecondary, CurrentTheme.BgMain, 90)
 
-    -- Search bar
+    -- Search box
     local searchBox = Creator.New("TextBox", {
-        Size = UDim2.new(1, -12, 0, 28),
+        Size = UDim2.new(1, -12, 0, 30),
         Position = UDim2.new(0, 6, 0, 6),
         BackgroundColor3 = CurrentTheme.BgElement,
         BorderSizePixel = 0,
         Text = "",
-        PlaceholderText = "🔍 Search...",
+        PlaceholderText = "🔍  Search...",
         PlaceholderColor3 = CurrentTheme.SubText,
         TextColor3 = CurrentTheme.Text,
         TextSize = 12,
         Font = Enum.Font.Gotham,
         ClearTextOnFocus = false,
-        ZIndex = 51,
+        ZIndex = 502,
         Parent = popup,
     })
-    Creator.Corner(searchBox, 6)
-    Creator.Stroke(searchBox, CurrentTheme.Border, 1, 0.5)
-    Creator.Padding(searchBox, 0, 0, 0, 8)
+    Creator.Corner(searchBox, 8)
+    local searchStroke = Creator.Stroke(searchBox, CurrentTheme.Border, 1, 0.5)
+    Creator.Padding(searchBox, 0, 0, 0, 10)
 
     local scroll = Creator.New("ScrollingFrame", {
-        Size = UDim2.new(1, -12, 1, -44),
-        Position = UDim2.new(0, 6, 0, 38),
+        Size = UDim2.new(1, -12, 1, -46),
+        Position = UDim2.new(0, 6, 0, 40),
         BackgroundTransparency = 1,
         BorderSizePixel = 0,
         ScrollBarThickness = 3,
         ScrollBarImageColor3 = CurrentTheme.Accent,
         ScrollBarImageTransparency = 0.5,
         CanvasSize = UDim2.new(0, 0, 0, 0),
-        ZIndex = 51,
+        ZIndex = 502,
         Parent = popup,
     })
     Creator.New("UIListLayout", {
@@ -1097,18 +1063,18 @@ function Element:AddDropdown(cfg)
                 local sel = isSelected(v)
 
                 local optBtn = Creator.New("TextButton", {
-                    Size = UDim2.new(1, -6, 0, 28),
+                    Size = UDim2.new(1, 0, 0, 30),
                     BackgroundColor3 = sel and CurrentTheme.Accent or CurrentTheme.BgElement,
                     BackgroundTransparency = sel and 0.4 or 1,
                     BorderSizePixel = 0,
                     Text = "",
                     AutoButtonColor = false,
-                    ZIndex = 52,
+                    ZIndex = 503,
                     Parent = scroll,
                 })
-                Creator.Corner(optBtn, 6)
+                Creator.Corner(optBtn, 7)
 
-                local checkMark = Creator.New("TextLabel", {
+                local check = Creator.New("TextLabel", {
                     Size = UDim2.new(0, 20, 1, 0),
                     Position = UDim2.new(0, 4, 0, 0),
                     BackgroundTransparency = 1,
@@ -1124,7 +1090,7 @@ function Element:AddDropdown(cfg)
                     Position = UDim2.new(0, 24, 0, 0),
                     BackgroundTransparency = 1,
                     Text = tostring(v),
-                    TextColor3 = sel and CurrentTheme.Text or CurrentTheme.SubText,
+                    TextColor3 = sel and CurrentTheme.Accent or CurrentTheme.SubText,
                     TextSize = 12,
                     Font = Enum.Font.Gotham,
                     TextXAlignment = Enum.TextXAlignment.Left,
@@ -1134,7 +1100,7 @@ function Element:AddDropdown(cfg)
 
                 optBtn.MouseEnter:Connect(function()
                     if not isSelected(v) then
-                        Animator.Tween(optBtn, {BackgroundTransparency = 0.7, BackgroundColor3 = CurrentTheme.BgHover}, 0.15)
+                        Animator.Tween(optBtn, {BackgroundTransparency = 0.5, BackgroundColor3 = CurrentTheme.BgHover}, 0.15)
                     end
                 end)
                 optBtn.MouseLeave:Connect(function()
@@ -1160,7 +1126,14 @@ function Element:AddDropdown(cfg)
             end
         end
 
-        scroll.CanvasSize = UDim2.new(0, 0, 0, count * 31 + 4)
+        scroll.CanvasSize = UDim2.new(0, 0, 0, count * 33 + 4)
+    end
+
+    -- Position popup right below display using world coordinates
+    local function positionPopup()
+        local pos = display.AbsolutePosition
+        local size = display.AbsoluteSize
+        popup.Position = UDim2.new(0, pos.X + size.X - 200, 0, pos.Y + size.Y + 4)
     end
 
     local function open()
@@ -1168,7 +1141,8 @@ function Element:AddDropdown(cfg)
         popup.Visible = true
         searchBox.Text = ""
         rebuildOptions("")
-        local targetH = math.min(#values * 31 + 44, 240)
+        positionPopup()
+        local targetH = math.min(#values * 33 + 46, 260)
         Animator.Tween(popup, {Size = UDim2.new(0, 200, 0, targetH)}, 0.25, Enum.EasingStyle.Quint)
         Animator.Tween(arrow, {Rotation = 180}, 0.25)
         Animator.Tween(stroke, {Color = CurrentTheme.BorderAccent}, 0.2)
@@ -1193,34 +1167,53 @@ function Element:AddDropdown(cfg)
             DropdownObj.Value = v
         end
         refreshDisplay()
-        rebuildOptions(searchBox.Text)
+        if opened then rebuildOptions(searchBox.Text) end
         if DropdownObj.Callback then task.spawn(function() pcall(DropdownObj.Callback, DropdownObj.Value) end) end
     end
     DropdownObj.GetValue = function() return DropdownObj.Value end
     DropdownObj.SetValues = function(vals)
         values = vals
         DropdownObj.Values = vals
-        rebuildOptions(searchBox.Text)
+        if opened then rebuildOptions(searchBox.Text) end
     end
     DropdownObj.OnChanged = function(fn) DropdownObj.Changed = fn fn(DropdownObj.Value) end
 
     searchBox:GetPropertyChangedSignal("Text"):Connect(function()
         rebuildOptions(searchBox.Text)
+        positionPopup()
     end)
 
     searchBox.Focused:Connect(function()
-        Animator.Tween(searchBox.UIStroke, {Color = CurrentTheme.Accent}, 0.2)
+        Animator.Tween(searchStroke, {Color = CurrentTheme.Accent}, 0.2)
     end)
     searchBox.FocusLost:Connect(function()
-        Animator.Tween(searchBox.UIStroke, {Color = CurrentTheme.Border}, 0.2)
+        Animator.Tween(searchStroke, {Color = CurrentTheme.Border}, 0.2)
     end)
 
     display.MouseButton1Click:Connect(function()
         if opened then close() else open() end
     end)
 
-    refreshDisplay()
+    -- Close on outside click
+    Creator.Connect(UserInputService.InputBegan, function(input)
+        if not opened then return end
+        if input.UserInputType ~= Enum.UserInputType.MouseButton1 and input.UserInputType ~= Enum.UserInputType.Touch then return end
+        local mouse = UserInputService:GetMouseLocation()
+        local p = popup.AbsolutePosition
+        local s = popup.AbsoluteSize
+        local dp = display.AbsolutePosition
+        local ds = display.AbsoluteSize
+        local inPopup = mouse.X >= p.X and mouse.X <= p.X + s.X and mouse.Y >= p.Y and mouse.Y <= p.Y + s.Y
+        local inDisplay = mouse.X >= dp.X and mouse.X <= dp.X + ds.X and mouse.Y >= dp.Y and mouse.Y <= dp.Y + ds.Y
+        if not inPopup and not inDisplay then close() end
+    end)
 
+    -- Reposition popup when window moves
+    Creator.Connect(RunService.RenderStepped, function()
+        if opened then positionPopup() end
+    end)
+
+    refreshDisplay()
     return DropdownObj
 end
 
@@ -1232,7 +1225,7 @@ function Element:AddInput(cfg)
     local value = cfg.Default or ""
 
     local frame = Creator.New("Frame", {
-        Size = UDim2.new(1, 0, 0, desc and 58 or 42),
+        Size = UDim2.new(1, 0, 0, desc and 60 or 44),
         BackgroundColor3 = CurrentTheme.BgElement,
         BorderSizePixel = 0,
         Parent = self.Container,
@@ -1241,8 +1234,8 @@ function Element:AddInput(cfg)
     local stroke = Creator.Stroke(frame, CurrentTheme.Border, 1, 0.5)
 
     Creator.New("TextLabel", {
-        Size = UDim2.new(1, -170, 0, desc and 18 or 20),
-        Position = UDim2.new(0, 14, 0, desc and 10 or 11),
+        Size = UDim2.new(1, -180, 0, desc and 18 or 20),
+        Position = UDim2.new(0, 14, 0, desc and 11 or 12),
         BackgroundTransparency = 1,
         Text = title,
         TextColor3 = CurrentTheme.Text,
@@ -1254,8 +1247,8 @@ function Element:AddInput(cfg)
 
     if desc then
         Creator.New("TextLabel", {
-            Size = UDim2.new(1, -170, 0, 16),
-            Position = UDim2.new(0, 14, 0, 30),
+            Size = UDim2.new(1, -180, 0, 16),
+            Position = UDim2.new(0, 14, 0, 32),
             BackgroundTransparency = 1,
             Text = desc,
             TextColor3 = CurrentTheme.SubText,
@@ -1267,7 +1260,7 @@ function Element:AddInput(cfg)
     end
 
     local box = Creator.New("TextBox", {
-        Size = UDim2.new(0, 155, 0, 30),
+        Size = UDim2.new(0, 160, 0, 30),
         Position = UDim2.new(1, -14, 0.5, 0),
         AnchorPoint = Vector2.new(1, 0.5),
         BackgroundColor3 = CurrentTheme.BgSecondary,
@@ -1282,16 +1275,16 @@ function Element:AddInput(cfg)
         Parent = frame,
     })
     Creator.Corner(box, 8)
-    Creator.Stroke(box, CurrentTheme.Border, 1, 0.5)
+    local boxStroke = Creator.Stroke(box, CurrentTheme.Border, 1, 0.5)
     Creator.Padding(box, 0, 0, 0, 10)
 
     local InputObj = {Value = value}
 
     box.Focused:Connect(function()
-        Animator.Tween(box.UIStroke, {Color = CurrentTheme.Accent, Transparency = 0}, 0.2)
+        Animator.Tween(boxStroke, {Color = CurrentTheme.Accent, Transparency = 0}, 0.2)
     end)
     box.FocusLost:Connect(function()
-        Animator.Tween(box.UIStroke, {Color = CurrentTheme.Border, Transparency = 0.5}, 0.2)
+        Animator.Tween(boxStroke, {Color = CurrentTheme.Border, Transparency = 0.5}, 0.2)
         InputObj.Value = box.Text
         if cfg.Callback then task.spawn(function() pcall(cfg.Callback, box.Text) end) end
     end)
@@ -1314,7 +1307,7 @@ function Element:AddKeybind(cfg)
     local mode = cfg.Mode or "Toggle"
 
     local frame = Creator.New("Frame", {
-        Size = UDim2.new(1, 0, 0, desc and 58 or 42),
+        Size = UDim2.new(1, 0, 0, desc and 60 or 44),
         BackgroundColor3 = CurrentTheme.BgElement,
         BorderSizePixel = 0,
         Parent = self.Container,
@@ -1323,8 +1316,8 @@ function Element:AddKeybind(cfg)
     local stroke = Creator.Stroke(frame, CurrentTheme.Border, 1, 0.5)
 
     Creator.New("TextLabel", {
-        Size = UDim2.new(1, -90, 0, desc and 18 or 20),
-        Position = UDim2.new(0, 14, 0, desc and 10 or 11),
+        Size = UDim2.new(1, -100, 0, desc and 18 or 20),
+        Position = UDim2.new(0, 14, 0, desc and 11 or 12),
         BackgroundTransparency = 1,
         Text = title,
         TextColor3 = CurrentTheme.Text,
@@ -1336,8 +1329,8 @@ function Element:AddKeybind(cfg)
 
     if desc then
         Creator.New("TextLabel", {
-            Size = UDim2.new(1, -90, 0, 16),
-            Position = UDim2.new(0, 14, 0, 30),
+            Size = UDim2.new(1, -100, 0, 16),
+            Position = UDim2.new(0, 14, 0, 32),
             BackgroundTransparency = 1,
             Text = desc,
             TextColor3 = CurrentTheme.SubText,
@@ -1349,7 +1342,7 @@ function Element:AddKeybind(cfg)
     end
 
     local keyBtn = Creator.New("TextButton", {
-        Size = UDim2.new(0, 74, 0, 28),
+        Size = UDim2.new(0, 80, 0, 30),
         Position = UDim2.new(1, -14, 0.5, 0),
         AnchorPoint = Vector2.new(1, 0.5),
         BackgroundColor3 = CurrentTheme.BgSecondary,
@@ -1416,14 +1409,14 @@ function Element:AddKeybind(cfg)
     return KeybindObj
 end
 
--- ───────────── COLORPICKER (SIMPLE HSV) ─────────────
+-- ───────────── COLORPICKER ─────────────
 function Element:AddColorpicker(cfg)
     cfg = cfg or {}
     local title = cfg.Title or "Color"
-    local value = cfg.Default or Color3.fromRGB(155, 70, 255)
+    local value = cfg.Default or Color3.fromRGB(212, 175, 55)
 
     local frame = Creator.New("Frame", {
-        Size = UDim2.new(1, 0, 0, 42),
+        Size = UDim2.new(1, 0, 0, 44),
         BackgroundColor3 = CurrentTheme.BgElement,
         BorderSizePixel = 0,
         Parent = self.Container,
@@ -1444,7 +1437,7 @@ function Element:AddColorpicker(cfg)
     })
 
     local colorBtn = Creator.New("TextButton", {
-        Size = UDim2.new(0, 40, 0, 26),
+        Size = UDim2.new(0, 44, 0, 28),
         Position = UDim2.new(1, -14, 0.5, 0),
         AnchorPoint = Vector2.new(1, 0.5),
         BackgroundColor3 = value,
@@ -1453,14 +1446,13 @@ function Element:AddColorpicker(cfg)
         Parent = frame,
     })
     Creator.Corner(colorBtn, 8)
-    Creator.Stroke(colorBtn, Color3.fromRGB(255,255,255), 1.5, 0.6)
+    Creator.Stroke(colorBtn, CurrentTheme.Accent, 1.5, 0.4)
 
     local CPObj = {Value = value}
     CPObj.Callback = cfg.Callback
     CPObj.Changed = nil
 
     colorBtn.MouseButton1Click:Connect(function()
-        -- Cycle hue on click (simple)
         local h, s, v = Color3.toHSV(CPObj.Value)
         h = (h + 0.1) % 1
         CPObj.Value = Color3.fromHSV(h, s, v)
@@ -1483,7 +1475,8 @@ end
 -- ───────────── PARAGRAPH ─────────────
 function Element:AddParagraph(cfg)
     cfg = cfg or {}
-    local title = cfg.Title or "Paragraph"
+    if type(cfg) == "string" then cfg = {Title = cfg} end
+    local title = cfg.Title or "Info"
     local content = cfg.Content or ""
 
     local frame = Creator.New("Frame", {
@@ -1499,7 +1492,7 @@ function Element:AddParagraph(cfg)
 
     Creator.New("TextLabel", {
         Size = UDim2.new(1, -20, 0, 18),
-        Position = UDim2.new(0, 10, 0, 10),
+        Position = UDim2.new(0, 14, 0, 12),
         BackgroundTransparency = 1,
         Text = title,
         TextColor3 = CurrentTheme.Accent,
@@ -1511,8 +1504,8 @@ function Element:AddParagraph(cfg)
     })
 
     Creator.New("TextLabel", {
-        Size = UDim2.new(1, -20, 0, 16),
-        Position = UDim2.new(0, 10, 0, 30),
+        Size = UDim2.new(1, -28, 0, 16),
+        Position = UDim2.new(0, 14, 0, 34),
         BackgroundTransparency = 1,
         Text = content,
         TextColor3 = CurrentTheme.SubText,
@@ -1525,18 +1518,19 @@ function Element:AddParagraph(cfg)
         Parent = frame,
     })
 
+    Creator.Padding(frame, 0, 0, 12, 0)
     return {Frame = frame}
 end
 
 -- ───────────── LABEL ─────────────
 function Element:AddLabel(cfg)
+    if type(cfg) == "string" then cfg = {Text = cfg} end
     cfg = cfg or {}
-    local text = cfg.Text or "Label"
 
     local lbl = Creator.New("TextLabel", {
         Size = UDim2.new(1, 0, 0, 30),
         BackgroundTransparency = 1,
-        Text = text,
+        Text = cfg.Text or "Label",
         TextColor3 = CurrentTheme.Text,
         TextSize = 14,
         Font = Enum.Font.GothamBold,
@@ -1548,79 +1542,29 @@ function Element:AddLabel(cfg)
     return {SetText = function(t) lbl.Text = t end, Frame = lbl}
 end
 
--- ───────────── SECTION ─────────────
-function Element:AddSection(title)
-    title = title or "Section"
+-- ═══════════════ UI LIBRARY CORE ═══════════════
+local CyrusUI = {
+    Version = "4.0.0",
+    Theme = "RoyalBlue",
+    Window = nil,
+    MinimizeKey = Enum.KeyCode.RightControl,
+    ToggleButton = FloatBtn,
+    Options = {},
+}
 
-    local section = Creator.New("Frame", {
-        Size = UDim2.new(1, 0, 0, 32),
-        BackgroundTransparency = 1,
-        Parent = self.Container,
-    })
-
-    local accentDot = Creator.New("Frame", {
-        Size = UDim2.new(0, 4, 0, 20),
-        Position = UDim2.new(0, 0, 0.5, -10),
-        BackgroundColor3 = CurrentTheme.Accent,
-        BorderSizePixel = 0,
-        Parent = section,
-    })
-    Creator.Corner(accentDot, 2)
-    Creator.Gradient(accentDot, CurrentTheme.Accent2, CurrentTheme.Accent, 90)
-
-    Creator.New("TextLabel", {
-        Size = UDim2.new(1, -20, 1, 0),
-        Position = UDim2.new(0, 14, 0, 0),
-        BackgroundTransparency = 1,
-        Text = title,
-        TextColor3 = CurrentTheme.Text,
-        TextSize = 15,
-        Font = Enum.Font.GothamBold,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        RichText = true,
-        Parent = section,
-    })
-
-    local inner = Creator.New("Frame", {
-        Size = UDim2.new(1, 0, 0, 0),
-        Position = UDim2.new(0, 0, 0, 32),
-        BackgroundTransparency = 1,
-        AutomaticSize = Enum.AutomaticSize.Y,
-        Parent = section,
-    })
-    Creator.New("UIListLayout", {
-        Padding = UDim.new(0, 6),
-        SortOrder = Enum.SortOrder.LayoutOrder,
-        Parent = inner,
-    })
-
-    inner:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
-        section.Size = UDim2.new(1, 0, 0, inner.AbsoluteSize.Y + 38)
-    end)
-
-    local sectionObj = setmetatable({Container = inner, ScrollFrame = self.ScrollFrame}, Element)
-    return sectionObj
-end
-
--- ═══════════════ WINDOW CREATION ═══════════════
 function CyrusUI:CreateWindow(config)
     config = config or {}
     local title = config.Title or "CyrusUI"
     local subtitle = config.SubTitle or "v" .. CyrusUI.Version
-    local size = config.Size or UDim2.fromOffset(620, 460)
-    local themeName = config.Theme or "CyrusPurple"
+    local size = config.Size or UDim2.fromOffset(640, 470)
+    local themeName = config.Theme or "RoyalBlue"
 
     if Themes[themeName] then
         CurrentTheme = Themes[themeName]
         CyrusUI.Theme = themeName
     end
 
-    -- Update existing theme colors
-    if floatStroke then floatStroke.Color = CurrentTheme.Accent end
-    FloatBtn.BackgroundColor3 = CurrentTheme.BgSecondary
-    FloatBtn.ImageColor3 = CurrentTheme.Accent
-
-    -- Main window
+    -- Window
     local Window = Creator.New("Frame", {
         Name = "CyrusWindow",
         Size = UDim2.new(0, size.X.Offset, 0, size.Y.Offset),
@@ -1631,20 +1575,53 @@ function CyrusUI:CreateWindow(config)
         Visible = false,
         Parent = MainGui,
     })
-    Creator.Corner(Window, 16)
-    local mainStroke = Creator.Stroke(Window, CurrentTheme.BorderAccent, 1.5, 0.3)
+    Creator.Corner(Window, 18)
+    local mainStroke = Creator.Stroke(Window, CurrentTheme.Accent, 2, 0.2)
     Creator.Gradient(Window, CurrentTheme.BgSecondary, CurrentTheme.BgMain, 135)
+
+    -- Outer glow ring for luxury feel
+    local glowRing = Creator.New("Frame", {
+        Size = UDim2.new(1, 6, 1, 6),
+        Position = UDim2.new(0.5, -3, 0.5, -3),
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        BackgroundTransparency = 1,
+        ZIndex = -1,
+        Parent = Window,
+    })
+    Creator.Corner(glowRing, 22)
+    Creator.Stroke(glowRing, CurrentTheme.Accent, 3, 0.85)
 
     -- Header
     local header = Creator.New("Frame", {
-        Size = UDim2.new(1, 0, 0, 52),
+        Size = UDim2.new(1, 0, 0, 58),
         BackgroundTransparency = 1,
         Parent = Window,
     })
 
+    -- Title icon (gold diamond)
+    local iconFrame = Creator.New("Frame", {
+        Size = UDim2.new(0, 32, 0, 32),
+        Position = UDim2.new(0, 18, 0, 13),
+        BackgroundColor3 = CurrentTheme.Accent,
+        BorderSizePixel = 0,
+        Parent = header,
+    })
+    Creator.Corner(iconFrame, 10)
+    Creator.Gradient(iconFrame, CurrentTheme.Accent2, CurrentTheme.Accent, 45)
+
+    Creator.New("TextLabel", {
+        Size = UDim2.new(1, 0, 1, 0),
+        BackgroundTransparency = 1,
+        Text = "✦",
+        TextColor3 = Color3.fromRGB(20, 30, 50),
+        TextSize = 18,
+        Font = Enum.Font.GothamBold,
+        Parent = iconFrame,
+    })
+
     local titleLbl = Creator.New("TextLabel", {
-        Size = UDim2.new(1, -140, 0, 24),
-        Position = UDim2.new(0, 20, 0, 12),
+        Size = UDim2.new(1, -200, 0, 22),
+        Position = UDim2.new(0, 60, 0, 15),
         BackgroundTransparency = 1,
         Text = title,
         TextColor3 = CurrentTheme.Text,
@@ -1655,34 +1632,34 @@ function CyrusUI:CreateWindow(config)
         Parent = header,
     })
 
-    local subtitleLbl = Creator.New("TextLabel", {
-        Size = UDim2.new(1, -140, 0, 16),
-        Position = UDim2.new(0, 20, 0, 32),
+    Creator.New("TextLabel", {
+        Size = UDim2.new(1, -200, 0, 16),
+        Position = UDim2.new(0, 60, 0, 36),
         BackgroundTransparency = 1,
         Text = subtitle,
-        TextColor3 = CurrentTheme.SubText,
+        TextColor3 = CurrentTheme.Accent,
         TextSize = 11,
-        Font = Enum.Font.Gotham,
+        Font = Enum.Font.GothamMedium,
         TextXAlignment = Enum.TextXAlignment.Left,
         RichText = true,
         Parent = header,
     })
 
-    -- Header line
+    -- Header underline with gradient
     local headerLine = Creator.New("Frame", {
-        Size = UDim2.new(1, -32, 0, 1),
-        Position = UDim2.new(0, 16, 0, 51),
-        BackgroundColor3 = CurrentTheme.Border,
+        Size = UDim2.new(1, -32, 0, 2),
+        Position = UDim2.new(0, 16, 0, 57),
+        BackgroundColor3 = CurrentTheme.Accent,
         BorderSizePixel = 0,
         Parent = Window,
     })
-    Creator.Gradient(headerLine, CurrentTheme.Accent, CurrentTheme.Accent2, 0)
+    Creator.Gradient(headerLine, CurrentTheme.Accent, CurrentTheme.Primary, 0)
 
     -- Window control buttons
     local function makeControlBtn(text, posX, callback, hoverColor)
         local btn = Creator.New("TextButton", {
-            Size = UDim2.new(0, 28, 0, 28),
-            Position = UDim2.new(1, posX, 0, 12),
+            Size = UDim2.new(0, 30, 0, 30),
+            Position = UDim2.new(1, posX, 0, 14),
             BackgroundColor3 = CurrentTheme.BgElement,
             BackgroundTransparency = 0.5,
             Text = text,
@@ -1692,12 +1669,12 @@ function CyrusUI:CreateWindow(config)
             AutoButtonColor = false,
             Parent = header,
         })
-        Creator.Corner(btn, 8)
+        Creator.Corner(btn, 9)
         btn.MouseEnter:Connect(function()
             Animator.Tween(btn, {
-                BackgroundColor3 = hoverColor or CurrentTheme.BgHover,
+                BackgroundColor3 = hoverColor or CurrentTheme.Accent,
                 BackgroundTransparency = 0,
-                TextColor3 = CurrentTheme.Text,
+                TextColor3 = Color3.fromRGB(20, 30, 50),
             }, 0.2)
         end)
         btn.MouseLeave:Connect(function()
@@ -1711,21 +1688,17 @@ function CyrusUI:CreateWindow(config)
         return btn
     end
 
-    -- Min button
-    makeControlBtn("—", -100, function()
+    makeControlBtn("—", -104, function()
         Animator.Tween(Window, {
             Size = UDim2.new(0, 0, 0, 0),
             Position = UDim2.new(0.5, 0, 0.5, 0),
         }, 0.35, Enum.EasingStyle.Quint)
-        task.delay(0.35, function()
-            Window.Visible = false
-        end)
+        task.delay(0.35, function() Window.Visible = false end)
     end)
 
-    -- Max button
     local isMax = false
-    local prevSize = size
-    local maxBtn = makeControlBtn("☐", -68, function()
+    local prevSize = UDim2.new(0, size.X.Offset, 0, size.Y.Offset)
+    local maxBtn = makeControlBtn("☐", -70, function()
         isMax = not isMax
         if isMax then
             prevSize = UDim2.new(0, Window.AbsoluteSize.X, 0, Window.AbsoluteSize.Y)
@@ -1743,7 +1716,6 @@ function CyrusUI:CreateWindow(config)
         end
     end)
 
-    -- Close button
     makeControlBtn("✕", -36, function()
         Animator.Tween(Window, {
             Size = UDim2.new(0, 0, 0, 0),
@@ -1757,22 +1729,36 @@ function CyrusUI:CreateWindow(config)
             Window.BackgroundTransparency = 0
         end)
         FloatBtn.Visible = true
-    end, Color3.fromRGB(255, 70, 70))
+    end, Color3.fromRGB(255, 70, 90))
 
     -- Sidebar
     local sidebar = Creator.New("Frame", {
-        Size = UDim2.new(0, 150, 1, -80),
-        Position = UDim2.new(0, 12, 0, 62),
+        Size = UDim2.new(0, 160, 1, -86),
+        Position = UDim2.new(0, 14, 0, 68),
         BackgroundColor3 = CurrentTheme.BgSecondary,
-        BackgroundTransparency = 0.5,
+        BackgroundTransparency = 0.3,
         BorderSizePixel = 0,
         Parent = Window,
     })
-    Creator.Corner(sidebar, 12)
+    Creator.Corner(sidebar, 14)
+    Creator.Stroke(sidebar, CurrentTheme.Border, 1, 0.5)
+
+    -- Sidebar header
+    Creator.New("TextLabel", {
+        Size = UDim2.new(1, -20, 0, 24),
+        Position = UDim2.new(0, 12, 0, 8),
+        BackgroundTransparency = 1,
+        Text = "◆  NAVIGATION",
+        TextColor3 = CurrentTheme.Accent,
+        TextSize = 10,
+        Font = Enum.Font.GothamBold,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        Parent = sidebar,
+    })
 
     local tabList = Creator.New("ScrollingFrame", {
-        Size = UDim2.new(1, -8, 1, -8),
-        Position = UDim2.new(0, 4, 0, 4),
+        Size = UDim2.new(1, -8, 1, -44),
+        Position = UDim2.new(0, 4, 0, 38),
         BackgroundTransparency = 1,
         BorderSizePixel = 0,
         ScrollBarThickness = 0,
@@ -1790,18 +1776,17 @@ function CyrusUI:CreateWindow(config)
 
     -- Content area
     local content = Creator.New("Frame", {
-        Size = UDim2.new(1, -186, 1, -80),
-        Position = UDim2.new(0, 174, 0, 62),
+        Size = UDim2.new(1, -196, 1, -86),
+        Position = UDim2.new(0, 184, 0, 68),
         BackgroundTransparency = 1,
         Parent = Window,
     })
 
-    -- Tab display title
     local tabTitle = Creator.New("TextLabel", {
-        Size = UDim2.new(1, -10, 0, 30),
-        Position = UDim2.new(0, 4, 0, -2),
+        Size = UDim2.new(1, -10, 0, 32),
+        Position = UDim2.new(0, 4, 0, 0),
         BackgroundTransparency = 1,
-        Text = "Tab",
+        Text = "Main",
         TextColor3 = CurrentTheme.Text,
         TextSize = 22,
         Font = Enum.Font.GothamBold,
@@ -1810,10 +1795,19 @@ function CyrusUI:CreateWindow(config)
         Parent = content,
     })
 
-    -- Tab content holder
+    -- Content divider under title
+    local titleDiv = Creator.New("Frame", {
+        Size = UDim2.new(1, -10, 0, 2),
+        Position = UDim2.new(0, 4, 0, 34),
+        BackgroundColor3 = CurrentTheme.Accent,
+        BorderSizePixel = 0,
+        Parent = content,
+    })
+    Creator.Gradient(titleDiv, CurrentTheme.Accent, CurrentTheme.Border, 0)
+
     local tabContentHolder = Creator.New("Frame", {
-        Size = UDim2.new(1, 0, 1, -36),
-        Position = UDim2.new(0, 0, 0, 36),
+        Size = UDim2.new(1, 0, 1, -46),
+        Position = UDim2.new(0, 0, 0, 46),
         BackgroundTransparency = 1,
         Parent = content,
     })
@@ -1837,18 +1831,18 @@ function CyrusUI:CreateWindow(config)
         end
     end)
 
-    -- Tabs system
     local tabs = {}
     local selectedTab = nil
-
     local WindowObj = {Tabs = tabs, Window = Window, FloatingButton = FloatBtn}
 
     function WindowObj:AddTab(cfg)
+        if type(cfg) == "string" then cfg = {Title = cfg} end
         cfg = cfg or {}
         local tabTitleText = cfg.Title or "Tab"
+        local icon = cfg.Icon or "▸"
 
         local tabBtn = Creator.New("TextButton", {
-            Size = UDim2.new(1, 0, 0, 38),
+            Size = UDim2.new(1, 0, 0, 40),
             BackgroundColor3 = CurrentTheme.BgElement,
             BackgroundTransparency = 1,
             Text = "",
@@ -1858,8 +1852,8 @@ function CyrusUI:CreateWindow(config)
         Creator.Corner(tabBtn, 10)
 
         local indicator = Creator.New("Frame", {
-            Size = UDim2.new(0, 3, 0, 20),
-            Position = UDim2.new(0, 0, 0.5, -10),
+            Size = UDim2.new(0, 3, 0, 22),
+            Position = UDim2.new(0, 0, 0.5, -11),
             BackgroundColor3 = CurrentTheme.Accent,
             BackgroundTransparency = 1,
             BorderSizePixel = 0,
@@ -1867,9 +1861,20 @@ function CyrusUI:CreateWindow(config)
         })
         Creator.Corner(indicator, 2)
 
+        local iconLbl = Creator.New("TextLabel", {
+            Size = UDim2.new(0, 24, 1, 0),
+            Position = UDim2.new(0, 12, 0, 0),
+            BackgroundTransparency = 1,
+            Text = icon,
+            TextColor3 = CurrentTheme.Accent,
+            TextSize = 14,
+            Font = Enum.Font.GothamBold,
+            Parent = tabBtn,
+        })
+
         local tabLabel = Creator.New("TextLabel", {
-            Size = UDim2.new(1, -20, 1, 0),
-            Position = UDim2.new(0, 14, 0, 0),
+            Size = UDim2.new(1, -45, 1, 0),
+            Position = UDim2.new(0, 40, 0, 0),
             BackgroundTransparency = 1,
             Text = tabTitleText,
             TextColor3 = CurrentTheme.SubText,
@@ -1896,7 +1901,7 @@ function CyrusUI:CreateWindow(config)
             SortOrder = Enum.SortOrder.LayoutOrder,
             Parent = tabScroll,
         })
-        Creator.Padding(tabScroll, 2, 4, 4, 2)
+        Creator.Padding(tabScroll, 2, 6, 4, 2)
         tabScroll.UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
             tabScroll.CanvasSize = UDim2.new(0, 0, 0, tabScroll.UIListLayout.AbsoluteContentSize.Y + 8)
         end)
@@ -1925,25 +1930,21 @@ function CyrusUI:CreateWindow(config)
                 t.Content.Visible = false
                 Animator.Tween(t.Button, {BackgroundTransparency = 1}, 0.2)
                 Animator.Tween(t.Button:FindFirstChildOfClass("Frame"), {BackgroundTransparency = 1}, 0.2)
-                t.Button.TextLabel.TextColor3 = CurrentTheme.SubText
+                local lbl = t.Button:FindFirstChildOfClass("TextLabel")
+                if lbl then lbl.TextColor3 = CurrentTheme.SubText end
             end
             tabScroll.Visible = true
-            Animator.Tween(tabBtn, {BackgroundTransparency = 0.4, BackgroundColor3 = CurrentTheme.Accent}, 0.25)
+            Animator.Tween(tabBtn, {BackgroundTransparency = 0.3, BackgroundColor3 = CurrentTheme.Primary}, 0.25)
             Animator.Tween(indicator, {BackgroundTransparency = 0}, 0.25)
             tabLabel.TextColor3 = CurrentTheme.Text
             tabTitle.Text = tabTitleText
             selectedTab = tabObj
         end
 
-        tabBtn.MouseButton1Click:Connect(function()
-            tabObj:Select()
-        end)
+        tabBtn.MouseButton1Click:Connect(function() tabObj:Select() end)
 
         table.insert(tabs, tabObj)
-
-        if #tabs == 1 then
-            task.defer(function() tabObj:Select() end)
-        end
+        if #tabs == 1 then task.defer(function() tabObj:Select() end) end
 
         return tabObj
     end
@@ -1958,24 +1959,20 @@ function CyrusUI:CreateWindow(config)
                     Position = UDim2.new(0.5, 0, 0.5, 0),
                 }, 0.3, Enum.EasingStyle.Quint)
                 task.delay(0.3, function() Window.Visible = false end)
-                FloatBtn.Visible = true
-            else
-                FloatBtn.Visible = true
             end
+            FloatBtn.Visible = true
         end
     end)
 
     -- Float button toggle
     FloatBtn.MouseButton1Click:Connect(function()
         if Window.Visible then
-            -- Hide
             Animator.Tween(Window, {
                 Size = UDim2.new(0, 0, 0, 0),
                 Position = UDim2.new(0.5, 0, 0.5, 0),
             }, 0.35, Enum.EasingStyle.Quint)
             task.delay(0.35, function() Window.Visible = false end)
         else
-            -- Show
             Window.Visible = true
             Window.Size = UDim2.new(0, 0, 0, 0)
             Window.Position = UDim2.new(0.5, 0, 0.5, 0)
@@ -1986,7 +1983,7 @@ function CyrusUI:CreateWindow(config)
         end
     end)
 
-    -- Show window initially
+    -- Show window with animation
     Window.Visible = true
     Window.Size = UDim2.new(0, 0, 0, 0)
     Window.Position = UDim2.new(0.5, 0, 0.5, 0)
@@ -1997,11 +1994,10 @@ function CyrusUI:CreateWindow(config)
 
     CyrusUI.Window = WindowObj
 
-    -- Welcome notification
     task.delay(0.8, function()
         Notify({
-            Title = '<font color="#b446ff">✦ CyrusUI</font> <font color="#ffffff">v3.0</font>',
-            Content = "Interface loaded successfully!",
+            Title = '<font color="#d4af37">✦ CyrusUI v4.0</font>',
+            Content = "Blue & Gold Luxury Edition loaded!",
             SubContent = "Discord: discord.gg/speedhubx",
             Duration = 8,
         })
@@ -2014,27 +2010,17 @@ function CyrusUI:SetTheme(name)
     if Themes[name] then
         CurrentTheme = Themes[name]
         CyrusUI.Theme = name
-        Notify({
-            Title = "Theme",
-            Content = "Changed to " .. name,
-            Duration = 3,
-        })
+        Notify({Title = "Theme", Content = "Changed to " .. name, Duration = 3})
     end
 end
 
-function CyrusUI:Notify(cfg)
-    return Notify(cfg)
-end
+function CyrusUI:Notify(cfg) return Notify(cfg) end
 
 function CyrusUI:Destroy()
     Creator.Cleanup()
-    for _, conn in ipairs(ActiveSprings) do
-        pcall(function() conn:Disconnect() end)
-    end
     MainGui:Destroy()
 end
 
--- Global export
 _G.CyrusUI = CyrusUI
 if getgenv then getgenv().CyrusUI = CyrusUI end
 
