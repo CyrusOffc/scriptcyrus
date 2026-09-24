@@ -1,32 +1,15 @@
 --[[
     ============================================================
-    DARK SKY UI LIBRARY  v6.3  (RESPONSIVE + DROPDOWN FIX)
+    DARK SKY UI LIBRARY  v6.3  (LAYOUT + MOBILE FLOAT FIX)
     ============================================================
-    
-    -- CARA PAKAI --
-    
-    local Library = loadstring(game:HttpGet("URL_RAW"))()
-    
-    local win = Library:CreateWindow({
-        Title = "MY SCRIPT HUB",
-        Subtitle = "v1.0 | By Cyrus",
-        Width = 600, Height = 420,
-        ToggleKey = Enum.KeyCode.RightShift,
-        ShowFloatButton = false,
-    })
-    
-    local grp = win:AddNavGroup("FEATURES")
-    local page = grp:AddPage({ Name = "Combat", Icon = "rbxassetid://10734975692" })
-    
-    local left  = page:AddColumn(0.5)
-    local right = page:AddColumn(0.5)
-    
-    local s1 = left:AddSection({ Name = "Auto Combat" })
-    s1:AddToggle({ Name = "Speed Hack", Callback = function(v) end })
-    
-    local s2 = right:AddSection({ Name = "Filters" })
-    s2:AddDropdown({ Name = "Type", Options = {"A","B"}, Callback = function(v) end })
-    ============================================================
+    FIX v6.3:
+    - AddColumn(widthScale) sekarang beneran dipakai (dulu diabaikan,
+      selalu dipaksa 50% lewat UIGridLayout -> makanya konten kepotong)
+    - Kolom pakai UIListLayout horizontal + Scale width proporsional
+    - CanvasSize page pakai AutomaticCanvasSize (hapus polling manual
+      yang bikin scroll gak sinkron / section ke-cut)
+    - Tombol FLOAT baru di header (bisa di-tap di mobile, gak
+      bergantung RightShift lagi)
 ]]
 
 local Library = {}
@@ -37,7 +20,6 @@ local UIS = game:GetService("UserInputService")
 local PL = game:GetService("Players")
 local HS = game:GetService("HttpService")
 
--- ── ICONS ─────────────────────────────────────────────────────
 local Icons = {
     lightning    = "rbxassetid://10709805727",
     swords       = "rbxassetid://10734975692",
@@ -56,9 +38,9 @@ local Icons = {
     zap          = "rbxassetid://10723345749",
     search       = "rbxassetid://10734943674",
     shield       = "rbxassetid://10709791437",
+    float        = "rbxassetid://10734953492", -- bubble/circle icon
 }
 
--- ── GUI PARENT ────────────────────────────────────────────────
 local GUI
 local ok = pcall(function()
     GUI = Instance.new("ScreenGui")
@@ -79,7 +61,6 @@ if not ok or not GUI then
     GUI.Parent = PL.LocalPlayer:WaitForChild("PlayerGui")
 end
 
--- ── THEME ─────────────────────────────────────────────────────
 local T = {
     BG0 = Color3.fromRGB(8, 12, 24),
     BG1 = Color3.fromRGB(12, 18, 36),
@@ -108,7 +89,6 @@ local T = {
     Dir = Enum.EasingDirection.Out,
 }
 
--- ── HELPERS ───────────────────────────────────────────────────
 local function tw(obj, props, t, s, d)
     if not obj or not obj.Parent then return end
     local ti = TweenInfo.new(t or T.Spd, s or T.Ease, d or T.Dir)
@@ -215,7 +195,8 @@ local function ico(parent, icon, size, pos, color, z, anchor)
 end
 
 -- ══════════════════════════════════════════════════════════════
--- SEARCH DROPDOWN (FIXED: min width 180, no shrink)
+-- SEARCH DROPDOWN (unchanged logic, still parents overlay to GUI
+-- root so it never gets clipped by any section/scroll frame)
 -- ══════════════════════════════════════════════════════════════
 local activeDropdown = nil
 
@@ -278,7 +259,7 @@ local function createSearchDropdown(gui, selBox, opts, def, cb, isMulti)
         if overlay then
             local ov = overlay
             overlay = nil
-            tw(ov, { Size = UDim2.new(0, ov.AbsoluteSize.X, 0, 0) }, 0.16)
+            tw(ov, { Size = UDim2.new(0, selBox.AbsoluteSize.X, 0, 0) }, 0.16)
             task.delay(0.16, function()
                 pcall(function() ov:Destroy() end)
             end)
@@ -289,31 +270,17 @@ local function createSearchDropdown(gui, selBox, opts, def, cb, isMulti)
     local function buildList()
         if overlay then overlay:Destroy() end
 
-        -- FIX: minimum width 200px biar gak mengecil
-        local MIN_W = 200
-        local boxW = math.max(selBox.AbsoluteSize.X, MIN_W)
-        local maxH = math.min(#opts * 26 + 38, 200)
-
-        -- FIX: cek posisi biar gak keluar layar
-        local vp = gui.AbsoluteSize
-        local openUp = false
-        local spaceBelow = vp.Y - (selBox.AbsolutePosition.Y + selBox.AbsoluteSize.Y)
-        if spaceBelow < maxH + 12 then openUp = true end
-
+        local maxH = math.min(#opts * 26 + 38, 180)
+        local screenH = gui.AbsoluteSize.Y
+        local spaceBelow = screenH - (selBox.AbsolutePosition.Y + selBox.AbsoluteSize.Y)
+        local openUp = spaceBelow < maxH + 12
         local posY = openUp
             and (selBox.AbsolutePosition.Y - maxH - 4)
             or  (selBox.AbsolutePosition.Y + selBox.AbsoluteSize.Y + 4)
 
-        -- FIX: cek posisi X biar gak keluar kanan
-        local posX = selBox.AbsolutePosition.X
-        if posX + boxW > vp.X - 8 then
-            posX = vp.X - boxW - 8
-        end
-        if posX < 8 then posX = 8 end
-
         overlay = mk("Frame", {
-            Size = UDim2.new(0, boxW, 0, 0),
-            Position = UDim2.new(0, posX, 0, posY),
+            Size = UDim2.new(0, selBox.AbsoluteSize.X, 0, 0),
+            Position = UDim2.new(0, selBox.AbsolutePosition.X, 0, posY),
             BackgroundColor3 = T.BG2,
             BorderSizePixel = 0,
             Visible = true,
@@ -457,7 +424,7 @@ local function createSearchDropdown(gui, selBox, opts, def, cb, isMulti)
         end)
 
         render("")
-        return overlay, boxW, maxH
+        return overlay
     end
 
     local clicker = mk("TextButton", {
@@ -477,9 +444,10 @@ local function createSearchDropdown(gui, selBox, opts, def, cb, isMulti)
             end
             opened = true
             activeDropdown = dd
-            local ov, boxW, maxH = buildList()
-            ov.Size = UDim2.new(0, boxW, 0, 0)
-            tw(ov, {Size = UDim2.new(0, boxW, 0, maxH)}, 0.24, T.EaseB)
+            local ov = buildList()
+            local maxH = math.min(#opts * 26 + 38, 180)
+            ov.Size = UDim2.new(0, selBox.AbsoluteSize.X, 0, 0)
+            tw(ov, {Size = UDim2.new(0, selBox.AbsoluteSize.X, 0, maxH)}, 0.24, T.EaseB)
             tw(arrow, {Rotation = 180}, 0.18)
         end
     end)
@@ -539,7 +507,6 @@ function Library:CreateWindow(cfg)
 
     local win = { _pages = {}, _open = true, _mini = false }
 
-    -- MAIN FRAME
     local Main = mk("Frame", {
         Name = "CyruslMain",
         Size = UDim2.new(0, W_WIDTH, 0, 0),
@@ -591,7 +558,7 @@ function Library:CreateWindow(cfg)
     ico(logoBG, Icons.lightning, UDim2.new(0.62,0,0.62,0), UDim2.new(0.5,0,0.5,0), Color3.fromRGB(255,255,255), 15, Vector2.new(0.5,0.5))
 
     mk("TextLabel", {
-        Size = UDim2.new(0, 220, 0, 16),
+        Size = UDim2.new(0, 180, 0, 16),
         Position = UDim2.new(0, 44, 0, 5),
         BackgroundTransparency = 1,
         Text = string.format('<b><font color="#FFFFFF">%s</font></b>', title),
@@ -604,7 +571,7 @@ function Library:CreateWindow(cfg)
     }, Hdr)
 
     mk("TextLabel", {
-        Size = UDim2.new(0, 240, 0, 12),
+        Size = UDim2.new(0, 200, 0, 12),
         Position = UDim2.new(0, 44, 0, 21),
         BackgroundTransparency = 1,
         Text = string.format('<i><font color="#82C8FF">%s</font></i>', subtitle),
@@ -616,10 +583,10 @@ function Library:CreateWindow(cfg)
         ZIndex = 14,
     }, Hdr)
 
-    -- Search di header (dibikin opsional biar gak ambil space)
+    -- Search dipersempit & 3 tombol kanan (Float / Min / Close) muat rapi
     local SearchBG = mk("Frame", {
-        Size = UDim2.new(0, 0, 0, 22),  -- 0 width by default, di-resize nanti
-        Position = UDim2.new(1, -195, 0.5, -11),
+        Size = UDim2.new(0, 120, 0, 22),
+        Position = UDim2.new(1, -223, 0.5, -11),
         BackgroundColor3 = T.BG0,
         ZIndex = 14,
     }, Hdr)
@@ -627,7 +594,7 @@ function Library:CreateWindow(cfg)
     brdr(SearchBG, T.BG5, 1)
     ico(SearchBG, Icons.search, UDim2.new(0, 11, 0, 11), UDim2.new(0, 7, 0.5, 0), T.Sky, 15)
 
-    local HeaderSearch = mk("TextBox", {
+    mk("TextBox", {
         Size = UDim2.new(1, -28, 1, 0),
         Position = UDim2.new(0, 24, 0, 0),
         BackgroundTransparency = 1,
@@ -663,6 +630,21 @@ function Library:CreateWindow(cfg)
     }, Hdr)
     rnd(MinBtn, 6)
     ico(MinBtn, Icons.minimize, UDim2.new(0.55,0,0.55,0), UDim2.new(0.5,0,0.5,0), Color3.fromRGB(255,255,255), 16, Vector2.new(0.5,0.5))
+
+    -- TOMBOL FLOAT BARU — ini yang tadinya hilang di mobile.
+    -- Fungsinya sama kayak win:Toggle() (RightShift), tapi bisa di-tap.
+    local FloatToggleBtn = mk("TextButton", {
+        Size = UDim2.new(0, 24, 0, 24),
+        Position = UDim2.new(1, -88, 0.5, -12),
+        BackgroundColor3 = T.Sky,
+        Text = "",
+        ZIndex = 15,
+        AutoButtonColor = false,
+    }, Hdr)
+    rnd(FloatToggleBtn, 6)
+    ico(FloatToggleBtn, Icons.eye, UDim2.new(0.55,0,0.55,0), UDim2.new(0.5,0,0.5,0), Color3.fromRGB(255,255,255), 16, Vector2.new(0.5,0.5))
+    FloatToggleBtn.MouseEnter:Connect(function() tw(FloatToggleBtn, {BackgroundColor3 = T.SkyBrt}, 0.14) end)
+    FloatToggleBtn.MouseLeave:Connect(function() tw(FloatToggleBtn, {BackgroundColor3 = T.Sky}, 0.14) end)
 
     -- LEFT NAV
     local NavW = 128
@@ -706,7 +688,7 @@ function Library:CreateWindow(cfg)
         ZIndex = 11,
     }, Main)
 
-    -- FLOAT BUTTON
+    -- FLOAT BUTTON (bubble ketika window disembunyikan)
     local FloatBtn = mk("TextButton", {
         Size = UDim2.new(0, 48, 0, 48),
         Position = UDim2.new(0, 16, 0.5, -24),
@@ -799,7 +781,7 @@ function Library:CreateWindow(cfg)
         task.delay(0.05, function() fbD.moved = false end)
     end)
 
-    -- CLOSE
+    -- CLOSE (tetap destroy penuh)
     CloseBtn.MouseButton1Click:Connect(function()
         win:Destroy()
     end)
@@ -810,7 +792,7 @@ function Library:CreateWindow(cfg)
         tw(CloseBtn, {BackgroundColor3 = T.Red}, 0.14)
     end)
 
-    -- MINIMIZE
+    -- MINIMIZE (shrink jadi header doang, beda dari float bubble)
     MinBtn.MouseButton1Click:Connect(function()
         if not win._mini then
             win._mini = true
@@ -833,12 +815,17 @@ function Library:CreateWindow(cfg)
         tw(MinBtn, {BackgroundColor3 = T.Gold}, 0.14)
     end)
 
-    -- TOGGLE KEY
+    -- TOGGLE KEY (buat yang punya keyboard, contoh emulator/PC)
     UIS.InputBegan:Connect(function(inp, gpe)
         if gpe then return end
         if inp.KeyCode == togKey then
             win:Toggle()
         end
+    end)
+
+    -- FLOAT TOGGLE BUTTON (buat mobile, gak butuh keyboard)
+    FloatToggleBtn.MouseButton1Click:Connect(function()
+        win:Toggle()
     end)
 
     task.spawn(function()
@@ -848,55 +835,6 @@ function Library:CreateWindow(cfg)
             BackgroundTransparency = 0,
         }, 0.45, T.EaseB)
     end)
-
-    -- ══════════════════════════════════════════════════════════
-    -- FIX RESIZE: Recalculate ContentArea + Clamp Window
-    -- ══════════════════════════════════════════════════════════
-    local function recalcLayout()
-        if Main.AbsoluteSize.Y <= 40 then return end
-        ContentArea.Size = UDim2.new(1, -NavW, 1, -38)
-        NavPan.Size = UDim2.new(0, NavW, 1, -38)
-        -- Header search visible only if enough width
-        if W_WIDTH >= 520 then
-            SearchBG.Size = UDim2.new(0, 150, 0, 22)
-        else
-            SearchBG.Size = UDim2.new(0, 0, 0, 22)
-        end
-    end
-
-    local function clampWindow()
-        task.wait()
-        local vp = workspace.CurrentCamera.ViewportSize
-        local wp = Main.AbsolutePosition
-        local ws = Main.AbsoluteSize
-
-        local newX, newY = wp.X, wp.Y
-        if wp.X + ws.X > vp.X then newX = vp.X - ws.X - 10 end
-        if wp.Y + ws.Y > vp.Y then newY = vp.Y - ws.Y - 10 end
-        if newX < 10 then newX = 10 end
-        if newY < 10 then newY = 10 end
-
-        if math.abs(newX - wp.X) > 1 or math.abs(newY - wp.Y) > 1 then
-            tw(Main, { Position = UDim2.new(0, newX, 0, newY) }, 0.22)
-        end
-    end
-
-    Main:GetPropertyChangedSignal("AbsoluteSize"):Connect(recalcLayout)
-    Main:GetPropertyChangedSignal("AbsolutePosition"):Connect(function()
-        task.delay(0.05, clampWindow)
-    end)
-    workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(function()
-        task.delay(0.1, clampWindow)
-    end)
-    MinBtn.MouseButton1Click:Connect(function()
-        task.delay(0.35, clampWindow)
-    end)
-    task.spawn(function()
-        task.wait(0.6)
-        recalcLayout()
-        clampWindow()
-    end)
-    -- ══════════════════════════════════════════════════════════
 
     -- NOTIFY
     function win:Notify(cfg2)
@@ -992,7 +930,7 @@ function Library:CreateWindow(cfg)
         end)
     end
 
-    -- TOGGLE
+    -- TOGGLE (Main <-> FloatBtn)
     function win:Toggle()
         if win._open then
             win._open = false
@@ -1010,7 +948,6 @@ function Library:CreateWindow(cfg)
         end
     end
 
-    -- DESTROY
     function win:Destroy()
         pcall(function() GUI:Destroy() end)
     end
@@ -1088,12 +1025,16 @@ function Library:CreateWindow(cfg)
                 BorderSizePixel = 0,
                 ScrollBarThickness = 3,
                 ScrollBarImageColor3 = T.Sky,
-                CanvasSize = UDim2.new(0,0,0,0),
+                CanvasSize = UDim2.new(0, 0, 0, 0),
+                AutomaticCanvasSize = Enum.AutomaticSize.Y, -- FIX: auto, gak perlu polling manual lagi
                 Visible = false,
                 ZIndex = 12,
             }, ContentArea)
             pad(pgScroll, 8, 10, 8, 10)
 
+            -- COLUMN HOLDER — FIX: pakai UIListLayout Horizontal, bukan
+            -- UIGridLayout yg maksa 50% lebar. widthScale dari AddColumn()
+            -- sekarang beneran menentukan lebar kolom.
             local colHolder = mk("Frame", {
                 Size = UDim2.new(1, 0, 0, 0),
                 AutomaticSize = Enum.AutomaticSize.Y,
@@ -1101,55 +1042,23 @@ function Library:CreateWindow(cfg)
                 ZIndex = 12,
             }, pgScroll)
 
-            -- FIX: UIGridLayout CellSize handle width scale
-            local grid = mk("UIGridLayout", {
-                CellSize = UDim2.new(0.5, -5, 0, 0),
-                CellPadding = UDim2.new(0, 8, 0, 6),
-                SortOrder = Enum.SortOrder.LayoutOrder,
-                FillDirectionMaxCells = 2,
+            local colList = mk("UIListLayout", {
+                FillDirection = Enum.FillDirection.Horizontal,
+                Padding = UDim.new(0, 8),
                 HorizontalAlignment = Enum.HorizontalAlignment.Left,
                 VerticalAlignment = Enum.VerticalAlignment.Top,
+                SortOrder = Enum.SortOrder.LayoutOrder,
             }, colHolder)
-
-            -- FIX: updateCanvas dengan cek width juga
-            local function updateCanvas()
-                task.wait()
-                local maxY = 0
-                for _, child in ipairs(colHolder:GetChildren()) do
-                    if child:IsA("Frame") then
-                        local bottom = child.AbsolutePosition.Y + child.AbsoluteSize.Y
-                        local rel = bottom - colHolder.AbsolutePosition.Y
-                        if rel > maxY then maxY = rel end
-                    end
-                end
-                pgScroll.CanvasSize = UDim2.new(0, 0, 0, maxY + 30)
-            end
-
-            colHolder.ChildAdded:Connect(updateCanvas)
-            colHolder.ChildRemoved:Connect(updateCanvas)
-
-            -- FIX: Auto-recalc tiap 0.25s biar responsive
-            task.spawn(function()
-                while pgScroll.Parent do
-                    task.wait(0.25)
-                    if pgScroll.Visible then
-                        updateCanvas()
-                    end
-                end
-            end)
-
-            -- FIX: recalc saat window resize
-            Main:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
-                task.delay(0.05, updateCanvas)
-            end)
 
             local columnCount = 0
             local columns = {}
 
-            local function getOrCreateColumn(idx)
+            local function getOrCreateColumn(idx, widthScale)
                 if columns[idx] then return columns[idx] end
+                -- lebar proporsional asli: widthScale=1 -> full width,
+                -- widthScale=0.5 -> setengah, dst. Offset kecil buat gap.
                 local colFrame = mk("Frame", {
-                    Size = UDim2.new(0, 0, 0, 0),
+                    Size = UDim2.new(widthScale, -4, 0, 0),
                     AutomaticSize = Enum.AutomaticSize.Y,
                     BackgroundTransparency = 1,
                     ZIndex = 13,
@@ -1160,9 +1069,10 @@ function Library:CreateWindow(cfg)
             end
 
             function page:AddColumn(widthScale)
+                widthScale = widthScale or 1 -- FIX: default full width, bukan kepotong 50%
                 columnCount = columnCount + 1
                 local myIdx = columnCount
-                local colFrame = getOrCreateColumn(myIdx)
+                local colFrame = getOrCreateColumn(myIdx, widthScale)
                 local col = { _secs = {}, _frame = colFrame }
 
                 function col:AddSection(cfg4)
@@ -1184,7 +1094,6 @@ function Library:CreateWindow(cfg)
                     brdr(secFrame, T.BG4, 1.1)
                     grd(secFrame, G(0, Color3.fromRGB(26, 46, 88), 1, Color3.fromRGB(14, 26, 54)), 145)
 
-                    -- HEADER
                     local secHdr = mk("Frame", {
                         Size = UDim2.new(1, 0, 0, 28),
                         BackgroundColor3 = T.BG2,
@@ -1260,7 +1169,6 @@ function Library:CreateWindow(cfg)
                     colBtn.MouseEnter:Connect(function() tw(colBtn,{BackgroundColor3=T.BG5},0.13) end)
                     colBtn.MouseLeave:Connect(function() tw(colBtn,{BackgroundColor3=T.BG4},0.13) end)
 
-                    -- BUTTON
                     function sec:AddButton(cfg5)
                         cfg5 = cfg5 or {}
                         local name = cfg5.Name or "Button"
@@ -1326,7 +1234,6 @@ function Library:CreateWindow(cfg)
                         return bf
                     end
 
-                    -- TOGGLE
                     function sec:AddToggle(cfg5)
                         cfg5 = cfg5 or {}
                         local name = cfg5.Name or "Toggle"
@@ -1431,7 +1338,6 @@ function Library:CreateWindow(cfg)
                         return tog
                     end
 
-                    -- SLIDER
                     function sec:AddSlider(cfg5)
                         cfg5 = cfg5 or {}
                         local name = cfg5.Name or "Slider"
@@ -1546,7 +1452,6 @@ function Library:CreateWindow(cfg)
                         return sl
                     end
 
-                    -- DROPDOWN
                     function sec:AddDropdown(cfg5)
                         cfg5 = cfg5 or {}
                         local name = cfg5.Name or "Dropdown"
@@ -1586,7 +1491,6 @@ function Library:CreateWindow(cfg)
                         return createSearchDropdown(GUI, selBox, opts, def, cb, false)
                     end
 
-                    -- MULTI DROPDOWN
                     function sec:AddMultiDropdown(cfg5)
                         cfg5 = cfg5 or {}
                         local name = cfg5.Name or "Multi Select"
@@ -1626,7 +1530,6 @@ function Library:CreateWindow(cfg)
                         return createSearchDropdown(GUI, selBox, opts, def, cb, true)
                     end
 
-                    -- INPUT
                     function sec:AddInput(cfg5)
                         cfg5 = cfg5 or {}
                         local name = cfg5.Name or ""
@@ -1708,7 +1611,6 @@ function Library:CreateWindow(cfg)
                         return inp
                     end
 
-                    -- PARAGRAPH
                     function sec:AddParagraph(cfg5)
                         cfg5 = cfg5 or {}
                         local pf = mk("Frame",{
@@ -1762,7 +1664,6 @@ function Library:CreateWindow(cfg)
                         }
                     end
 
-                    -- LABEL
                     function sec:AddLabel(cfg5)
                         cfg5 = cfg5 or {}
                         local lf = mk("Frame",{
@@ -1790,7 +1691,6 @@ function Library:CreateWindow(cfg)
                         }
                     end
 
-                    -- SEPARATOR
                     function sec:AddSeparator()
                         local sf2 = mk("Frame",{
                             Size=UDim2.new(1,0,0,10),
@@ -1807,7 +1707,6 @@ function Library:CreateWindow(cfg)
                         grd(sl2, G(0,T.BG0, 0.5,T.BG5, 1,T.BG0))
                     end
 
-                    -- DISCORD
                     function sec:AddDiscord(cfg5)
                         cfg5 = cfg5 or {}
                         local inv = cfg5.Invite or ""
@@ -1874,7 +1773,6 @@ function Library:CreateWindow(cfg)
                         return dcf
                     end
 
-                    -- KEYBIND
                     function sec:AddKeybind(cfg5)
                         cfg5 = cfg5 or {}
                         local name = cfg5.Name or "Keybind"
@@ -1945,7 +1843,6 @@ function Library:CreateWindow(cfg)
                     end
 
                     table.insert(col._secs, sec)
-                    task.spawn(updateCanvas)
                     return sec
                 end
                 return col
@@ -1964,7 +1861,6 @@ function Library:CreateWindow(cfg)
                 tw(nameLbl, {TextColor3 = T.Sky}, 0.2)
                 tw(iconLbl, {ImageColor3 = T.Sky}, 0.2)
                 tw(indBar, {BackgroundTransparency = 0}, 0.2)
-                task.spawn(updateCanvas)
             end
 
             navBtn.MouseButton1Click:Connect(function() page:Select() end)
