@@ -1,6 +1,6 @@
 -- ╔══════════════════════════════════════════════════════════════╗
 -- ║            C H R M I N A L   U I   L I B R A R Y          ║
--- ║              v2.0 | Blue & Gold | Anti-Detect              ║
+-- ║          v2.1 | Sky Blue Modern | Mobile Optimized         ║
 -- ║         Mobile/PC | All Executors | Smooth Animations      ║
 -- ╚══════════════════════════════════════════════════════════════╝
 
@@ -35,37 +35,41 @@ if not ok or not GUI then
     GUI.Parent = PL.LocalPlayer:WaitForChild("PlayerGui")
 end
 
--- ── THEME ─────────────────────────────────────────────────────
+-- ── THEME (SKY BLUE MODERN) ───────────────────────────────────
 local T = {
-    BG0 = Color3.fromRGB(5,  8,  22),
-    BG1 = Color3.fromRGB(8,  12, 32),
-    BG2 = Color3.fromRGB(11, 17, 44),
-    BG3 = Color3.fromRGB(14, 22, 56),
-    BG4 = Color3.fromRGB(18, 28, 70),
-    BG5 = Color3.fromRGB(24, 36, 88),
-    BG6 = Color3.fromRGB(30, 46, 105),
+    -- Backgrounds (Sky Theme)
+    BG0 = Color3.fromRGB(245, 248, 255), -- Background Utama (Putih kebiruan)
+    BG1 = Color3.fromRGB(255, 255, 255), -- Panel/Kartu (Putih)
+    BG2 = Color3.fromRGB(230, 240, 255), -- Header Section
+    BG3 = Color3.fromRGB(245, 250, 255), -- Elemen
+    BG4 = Color3.fromRGB(210, 225, 245), -- Hover
+    BG5 = Color3.fromRGB(180, 200, 230), -- Track Slider
+    BG6 = Color3.fromRGB(150, 180, 220),
 
-    Gold      = Color3.fromRGB(212, 175, 55),
-    GoldBrt   = Color3.fromRGB(255, 215, 80),
-    GoldDim   = Color3.fromRGB(145, 118, 38),
-    GoldDark  = Color3.fromRGB(72,  58,  18),
+    -- Aksen (Sky Blue & Gold)
+    Sky       = Color3.fromRGB(56, 152, 255),  -- Biru Langit
+    SkyBrt    = Color3.fromRGB(100, 180, 255),
+    SkyDim    = Color3.fromRGB(40, 110, 200),
+    Gold      = Color3.fromRGB(255, 180, 0),   -- Emas
+    GoldBrt   = Color3.fromRGB(255, 210, 80),
 
-    Blue      = Color3.fromRGB(48,  96,  220),
-    BlueBrt   = Color3.fromRGB(80,  140, 255),
+    -- Text
+    Text      = Color3.fromRGB(30, 40, 60),    -- Text Utama (Gelap)
+    TextSub   = Color3.fromRGB(80, 100, 130),  -- Text Sekunder
+    TextDim   = Color3.fromRGB(140, 160, 190), -- Text Pudar
+    TextGold  = Color3.fromRGB(255, 180, 0),
 
-    Text      = Color3.fromRGB(228, 234, 255),
-    TextSub   = Color3.fromRGB(148, 158, 200),
-    TextDim   = Color3.fromRGB(72,  82,  122),
-    TextGold  = Color3.fromRGB(212, 175, 55),
+    -- Status
+    Red       = Color3.fromRGB(255, 70, 70),
+    Green     = Color3.fromRGB(50, 200, 100),
+    Yellow    = Color3.fromRGB(255, 180, 0),
+    Discord   = Color3.fromRGB(88, 101, 242),
 
-    Red       = Color3.fromRGB(220, 58,  58),
-    Green     = Color3.fromRGB(50,  200, 100),
-    Yellow    = Color3.fromRGB(220, 180, 0),
-    Discord   = Color3.fromRGB(88,  101, 242),
-
+    -- Typography
     FontB   = Enum.Font.GothamBold,
     FontR   = Enum.Font.Gotham,
 
+    -- Animation
     Spd    = 0.20,
     SpdSlow= 0.35,
     Ease   = Enum.EasingStyle.Quart,
@@ -95,7 +99,7 @@ end
 
 local function brdr(p, c, t)
     return mk("UIStroke", {
-        Color = c or T.Gold,
+        Color = c or T.Sky,
         Thickness = t or 1,
         ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
     }, p)
@@ -137,7 +141,7 @@ local function ripple(parent, zix)
         Size = UDim2.new(0, 0, 0, 0),
         AnchorPoint = Vector2.new(0.5, 0.5),
         Position = UDim2.new(0.5, 0, 0.5, 0),
-        BackgroundColor3 = T.Gold,
+        BackgroundColor3 = T.Sky,
         BackgroundTransparency = 0.72,
         ZIndex = zix or 99,
         ClipsDescendants = false,
@@ -151,12 +155,12 @@ local function shadow(parent)
     return mk("ImageLabel", {
         AnchorPoint = Vector2.new(0.5, 0.5),
         BackgroundTransparency = 1,
-        Position = UDim2.new(0.5, 0, 0.5, 8),
-        Size = UDim2.new(1, 28, 1, 28),
+        Position = UDim2.new(0.5, 0, 0.5, 6),
+        Size = UDim2.new(1, 20, 1, 20),
         ZIndex = (parent.ZIndex or 10) - 1,
         Image = "rbxassetid://6014261993",
-        ImageColor3 = Color3.fromRGB(0, 0, 10),
-        ImageTransparency = 0.38,
+        ImageColor3 = Color3.fromRGB(100, 130, 180),
+        ImageTransparency = 0.6,
         ScaleType = Enum.ScaleType.Slice,
         SliceCenter = Rect.new(49, 49, 450, 450),
     }, parent)
@@ -165,10 +169,11 @@ end
 -- ── CREATE WINDOW ─────────────────────────────────────────────
 function Library:CreateWindow(cfg)
     cfg = cfg or {}
-    local W_WIDTH  = cfg.Width  or 740
-    local W_HEIGHT = cfg.Height or 470
+    -- Ukuran dioptimalkan untuk HP (Lebih kecil)
+    local W_WIDTH  = cfg.Width  or 560 
+    local W_HEIGHT = cfg.Height or 380
     local title    = cfg.Title    or "CHRMINAL UI"
-    local subtitle = cfg.Subtitle or "v2.0 | Blue & Gold"
+    local subtitle = cfg.Subtitle or "v2.1 | Sky Blue"
     local togKey   = cfg.ToggleKey or Enum.KeyCode.RightShift
 
     local win = {
@@ -185,95 +190,93 @@ function Library:CreateWindow(cfg)
         BackgroundColor3 = T.BG0,
         BorderSizePixel  = 0,
         ZIndex           = 10,
-        BackgroundTransparency = 1, -- Diubah dari GroupTransparency
+        BackgroundTransparency = 1, 
         ClipsDescendants = false,
     }, GUI)
-    rnd(Main, 10)
-    brdr(Main, T.Gold, 1)
-    grd(Main, G(0, T.BG0, 1, Color3.fromRGB(7, 11, 30)), 135)
+    rnd(Main, 12)
+    brdr(Main, T.Sky, 1.5) -- Border biru
+    grd(Main, G(0, T.BG0, 1, Color3.fromRGB(230, 240, 255)), 135)
     shadow(Main)
 
     -- ── HEADER ────────────────────────────────────────────────
     local Hdr = mk("Frame", {
-        Size             = UDim2.new(1, 0, 0, 46),
+        Size             = UDim2.new(1, 0, 0, 40),
         BackgroundColor3 = T.BG1,
         BorderSizePixel  = 0,
         ZIndex           = 12,
     }, Main)
-    rnd(Hdr, 10)
+    rnd(Hdr, 12)
     mk("Frame", {
         Size = UDim2.new(1, 0, 0.5, 0), Position = UDim2.new(0, 0, 0.5, 0),
         BackgroundColor3 = T.BG1, BorderSizePixel = 0, ZIndex = 12,
     }, Hdr)
     grd(Hdr, G(
-        0,   Color3.fromRGB(7, 12, 36),
-        0.5, Color3.fromRGB(10, 16, 46),
-        1,   Color3.fromRGB(7, 12, 36)
+        0,   Color3.fromRGB(255, 255, 255),
+        1,   Color3.fromRGB(230, 240, 255)
     ), 0)
 
     local logoBG = mk("Frame", {
-        Size = UDim2.new(0, 30, 0, 30), Position = UDim2.new(0, 10, 0.5, -15),
-        BackgroundColor3 = T.Gold, ZIndex = 14,
+        Size = UDim2.new(0, 26, 0, 26), Position = UDim2.new(0, 8, 0.5, -13),
+        BackgroundColor3 = T.Sky, ZIndex = 14,
     }, Hdr)
-    rnd(logoBG, 7)
-    grd(logoBG, G(0, T.GoldBrt, 1, T.Gold))
+    rnd(logoBG, 6)
+    grd(logoBG, G(0, T.SkyBrt, 1, T.Sky))
     mk("TextLabel", {
         Size = UDim2.new(1,0,1,0), BackgroundTransparency = 1,
-        Text = "⚡", TextSize = 15, TextColor3 = T.BG0,
+        Text = "⚡", TextSize = 13, TextColor3 = Color3.fromRGB(255,255,255),
         Font = T.FontB, ZIndex = 15,
     }, logoBG)
 
     mk("TextLabel", {
-        Size = UDim2.new(0, 200, 0, 22), Position = UDim2.new(0, 48, 0, 7),
+        Size = UDim2.new(0, 200, 0, 18), Position = UDim2.new(0, 40, 0, 5),
         BackgroundTransparency = 1, Text = title,
-        TextSize = 14, TextColor3 = T.Text,
+        TextSize = 12, TextColor3 = T.Text,
         Font = T.FontB, TextXAlignment = Enum.TextXAlignment.Left,
         RichText = true, ZIndex = 14,
     }, Hdr)
     mk("TextLabel", {
-        Size = UDim2.new(0, 220, 0, 13), Position = UDim2.new(0, 48, 0, 27),
+        Size = UDim2.new(0, 220, 0, 12), Position = UDim2.new(0, 40, 0, 22),
         BackgroundTransparency = 1, Text = subtitle,
-        TextSize = 10, TextColor3 = T.Gold,
+        TextSize = 9, TextColor3 = T.Sky,
         Font = T.FontR, TextXAlignment = Enum.TextXAlignment.Left,
         ZIndex = 14,
     }, Hdr)
 
     local acLine = mk("Frame", {
-        Size = UDim2.new(1,0,0,1), Position = UDim2.new(0,0,1,-1),
-        BackgroundColor3 = T.Gold, ZIndex = 13,
+        Size = UDim2.new(1,0,0,1.5), Position = UDim2.new(0,0,1,-1),
+        BackgroundColor3 = T.Sky, ZIndex = 13,
     }, Hdr)
-    grd(acLine, G(0,T.BG0, 0.12,T.GoldDim, 0.5,T.Gold, 0.88,T.GoldDim, 1,T.BG0))
+    grd(acLine, G(0,T.BG0, 0.1,T.Sky, 0.5,T.SkyBrt, 0.9,T.Sky, 1,T.BG0))
 
     local CloseBtn = mk("TextButton", {
-        Size = UDim2.new(0, 28, 0, 28), Position = UDim2.new(1, -36, 0.5, -14),
-        BackgroundColor3 = Color3.fromRGB(152, 38, 38),
-        Text = "✕", TextSize = 12, TextColor3 = Color3.fromRGB(255,255,255),
+        Size = UDim2.new(0, 24, 0, 24), Position = UDim2.new(1, -30, 0.5, -12),
+        BackgroundColor3 = T.Red,
+        Text = "✕", TextSize = 10, TextColor3 = Color3.fromRGB(255,255,255),
         Font = T.FontB, ZIndex = 15, AutoButtonColor = false,
     }, Hdr)
-    rnd(CloseBtn, 5)
+    rnd(CloseBtn, 4)
 
     local MinBtn = mk("TextButton", {
-        Size = UDim2.new(0, 28, 0, 28), Position = UDim2.new(1, -68, 0.5, -14),
-        BackgroundColor3 = Color3.fromRGB(175, 138, 20),
-        Text = "−", TextSize = 16, TextColor3 = Color3.fromRGB(255,255,255),
+        Size = UDim2.new(0, 24, 0, 24), Position = UDim2.new(1, -58, 0.5, -12),
+        BackgroundColor3 = T.Gold,
+        Text = "−", TextSize = 14, TextColor3 = Color3.fromRGB(255,255,255),
         Font = T.FontB, ZIndex = 15, AutoButtonColor = false,
     }, Hdr)
-    rnd(MinBtn, 5)
+    rnd(MinBtn, 4)
 
     -- ── LEFT NAV ──────────────────────────────────────────────
-    local NavW  = 150
+    local NavW  = 120 -- Lebih kecil
     local NavPan = mk("Frame", {
         Name = "Nav",
-        Size = UDim2.new(0, NavW, 1, -46), Position = UDim2.new(0, 0, 0, 46),
+        Size = UDim2.new(0, NavW, 1, -40), Position = UDim2.new(0, 0, 0, 40),
         BackgroundColor3 = T.BG1, BorderSizePixel = 0, ZIndex = 11,
     }, Main)
-    grd(NavPan, G(0, Color3.fromRGB(7, 11, 30), 1, Color3.fromRGB(5, 8, 22)), 180)
+    grd(NavPan, G(0, Color3.fromRGB(250, 252, 255), 1, Color3.fromRGB(240, 245, 255)), 180)
 
     local navBdr = mk("Frame", {
         Size = UDim2.new(0, 1, 1, 0), Position = UDim2.new(1, -1, 0, 0),
-        BackgroundColor3 = T.GoldDark, ZIndex = 12,
+        BackgroundColor3 = T.BG4, ZIndex = 12,
     }, NavPan)
-    grd(navBdr, G(0,T.BG0, 0.25,T.GoldDark, 0.75,T.GoldDark, 1,T.BG0), 180)
 
     local NavScroll = mk("ScrollingFrame", {
         Size = UDim2.new(1, 0, 1, 0),
@@ -282,36 +285,37 @@ function Library:CreateWindow(cfg)
         AutomaticCanvasSize = Enum.AutomaticSize.Y, ZIndex = 12,
     }, NavPan)
     list(NavScroll, 3)
-    pad(NavScroll, 10, 8, 6, 6)
+    pad(NavScroll, 8, 8, 5, 5)
 
     -- ── CONTENT AREA ──────────────────────────────────────────
     local ContentArea = mk("Frame", {
         Name = "ContentArea",
-        Size = UDim2.new(1, -NavW, 1, -46), Position = UDim2.new(0, NavW, 0, 46),
+        Size = UDim2.new(1, -NavW, 1, -40), Position = UDim2.new(0, NavW, 0, 40),
         BackgroundTransparency = 1, BorderSizePixel = 0, ZIndex = 11,
     }, Main)
 
     -- ── FLOAT BUTTON ──────────────────────────────────────────
     local FloatBtn = mk("TextButton", {
-        Size = UDim2.new(0, 50, 0, 50), Position = UDim2.new(0, 14, 0.5, -25),
-        BackgroundColor3 = T.BG0,
-        Text = "⚡", TextSize = 24, TextColor3 = T.Gold,
+        Size = UDim2.new(0, 40, 0, 40), Position = UDim2.new(0, 14, 0.5, -20),
+        BackgroundColor3 = T.BG1,
+        Text = "⚡", TextSize = 20, TextColor3 = T.Sky,
         Font = T.FontB, Visible = false, ZIndex = 100,
         AutoButtonColor = false,
     }, GUI)
-    rnd(FloatBtn, 13)
-    brdr(FloatBtn, T.Gold, 1.5)
-    grd(FloatBtn, G(0, Color3.fromRGB(12,20,56), 1, T.BG0))
+    rnd(FloatBtn, 10)
+    brdr(FloatBtn, T.Sky, 1.5)
+    grd(FloatBtn, G(0, Color3.fromRGB(255,255,255), 1, Color3.fromRGB(230,240,255)))
+    shadow(FloatBtn)
 
     -- ── NOTIFICATION HOLDER ────────────────────────────────────
     local NHolder = mk("Frame", {
-        Size = UDim2.new(0, 290, 1, 0), Position = UDim2.new(1, -300, 0, 0),
+        Size = UDim2.new(0, 260, 1, 0), Position = UDim2.new(1, -270, 0, 0),
         BackgroundTransparency = 1, ZIndex = 200,
     }, GUI)
     mk("UIListLayout", {
         VerticalAlignment   = Enum.VerticalAlignment.Bottom,
         HorizontalAlignment = Enum.HorizontalAlignment.Right,
-        Padding = UDim.new(0, 7),
+        Padding = UDim.new(0, 6),
         SortOrder = Enum.SortOrder.LayoutOrder,
     }, NHolder)
     pad(NHolder, 0, 14, 0, 10)
@@ -357,13 +361,12 @@ function Library:CreateWindow(cfg)
         end
     end)
 
-    -- Float click → open
     FloatBtn.MouseButton1Click:Connect(function()
         if not fbD.moved then
             FloatBtn.Visible = false
             Main.Visible = true
-            Main.BackgroundTransparency = 1 -- Ubah ke BackgroundTransparency
-            tw(Main, { BackgroundTransparency = 0 }, 0.28) -- Ubah ke BackgroundTransparency
+            Main.BackgroundTransparency = 1
+            tw(Main, { BackgroundTransparency = 0 }, 0.28)
             win._open = true
         end
         fbD.moved = false
@@ -371,7 +374,7 @@ function Library:CreateWindow(cfg)
 
     -- ── CLOSE / MINIMIZE ──────────────────────────────────────
     CloseBtn.MouseButton1Click:Connect(function()
-        tw(Main, { BackgroundTransparency = 1 }, 0.22) -- Ubah ke BackgroundTransparency
+        tw(Main, { BackgroundTransparency = 1 }, 0.22)
         task.delay(0.22, function()
             Main.Visible = false
             FloatBtn.Visible = true
@@ -379,10 +382,10 @@ function Library:CreateWindow(cfg)
         end)
     end)
     CloseBtn.MouseEnter:Connect(function()
-        tw(CloseBtn, { BackgroundColor3 = Color3.fromRGB(210,55,55) }, 0.12)
+        tw(CloseBtn, { BackgroundColor3 = Color3.fromRGB(255,100,100) }, 0.12)
     end)
     CloseBtn.MouseLeave:Connect(function()
-        tw(CloseBtn, { BackgroundColor3 = Color3.fromRGB(152,38,38) }, 0.12)
+        tw(CloseBtn, { BackgroundColor3 = T.Red }, 0.12)
     end)
 
     MinBtn.MouseButton1Click:Connect(function()
@@ -390,7 +393,7 @@ function Library:CreateWindow(cfg)
             win._mini = true
             NavPan.Visible     = false
             ContentArea.Visible = false
-            tw(Main, { Size = UDim2.new(0, W_WIDTH, 0, 46) }, 0.22)
+            tw(Main, { Size = UDim2.new(0, W_WIDTH, 0, 40) }, 0.22)
         else
             win._mini = false
             tw(Main, { Size = UDim2.new(0, W_WIDTH, 0, W_HEIGHT) }, 0.32, T.EaseB)
@@ -401,10 +404,10 @@ function Library:CreateWindow(cfg)
         end
     end)
     MinBtn.MouseEnter:Connect(function()
-        tw(MinBtn, { BackgroundColor3 = Color3.fromRGB(215,168,30) }, 0.12)
+        tw(MinBtn, { BackgroundColor3 = T.GoldBrt }, 0.12)
     end)
     MinBtn.MouseLeave:Connect(function()
-        tw(MinBtn, { BackgroundColor3 = Color3.fromRGB(175,138,20) }, 0.12)
+        tw(MinBtn, { BackgroundColor3 = T.Gold }, 0.12)
     end)
 
     -- Keyboard toggle
@@ -420,7 +423,7 @@ function Library:CreateWindow(cfg)
         task.wait()
         tw(Main, {
             Size             = UDim2.new(0, W_WIDTH, 0, W_HEIGHT),
-            BackgroundTransparency = 0, -- Ubah ke BackgroundTransparency
+            BackgroundTransparency = 0,
         }, 0.42, T.EaseB)
     end)
 
@@ -428,7 +431,7 @@ function Library:CreateWindow(cfg)
     function win:Notify(cfg2)
         cfg2 = cfg2 or {}
         local typeMap = {
-            Info    = { col = T.Gold,    ic = "ℹ" },
+            Info    = { col = T.Sky,    ic = "ℹ" },
             Success = { col = T.Green,   ic = "✓" },
             Warning = { col = T.Yellow,  ic = "⚠" },
             Error   = { col = T.Red,     ic = "✕" },
@@ -439,44 +442,45 @@ function Library:CreateWindow(cfg)
         local dur = cfg2.Duration or 3
 
         local nf = mk("Frame", {
-            Size = UDim2.new(1, 0, 0, 68),
+            Size = UDim2.new(1, 0, 0, 60),
             BackgroundColor3 = T.BG1, ZIndex = 201,
         }, NHolder)
         rnd(nf, 8)
-        brdr(nf, c, 1)
-        grd(nf, G(0,Color3.fromRGB(10,17,46), 1,Color3.fromRGB(7,11,30)), 135)
+        brdr(nf, c, 1.5)
+        grd(nf, G(0, Color3.fromRGB(255,255,255), 1, Color3.fromRGB(245,250,255)), 135)
+        shadow(nf)
 
         local ab = mk("Frame", {
-            Size = UDim2.new(0, 3, 1, -18), Position = UDim2.new(0, 8, 0, 9),
+            Size = UDim2.new(0, 3, 1, -16), Position = UDim2.new(0, 8, 0, 8),
             BackgroundColor3 = c, ZIndex = 202,
         }, nf)
         rnd(ab, 2)
 
         local icBG = mk("Frame", {
-            Size = UDim2.new(0, 26, 0, 26), Position = UDim2.new(0, 18, 0, 9),
-            BackgroundColor3 = c, BackgroundTransparency = 0.72, ZIndex = 202,
+            Size = UDim2.new(0, 24, 0, 24), Position = UDim2.new(0, 16, 0, 8),
+            BackgroundColor3 = c, BackgroundTransparency = 0.85, ZIndex = 202,
         }, nf)
-        rnd(icBG, 13)
+        rnd(icBG, 12)
         mk("TextLabel", {
             Size = UDim2.new(1,0,1,0), BackgroundTransparency = 1,
-            Text = ic, TextSize = 13, TextColor3 = c,
+            Text = ic, TextSize = 12, TextColor3 = c,
             Font = T.FontB, ZIndex = 203,
         }, icBG)
 
         mk("TextLabel", {
-            Size = UDim2.new(1,-52,0,20), Position = UDim2.new(0,50,0,8),
+            Size = UDim2.new(1,-50,0,18), Position = UDim2.new(0,46,0,8),
             BackgroundTransparency = 1,
             Text = cfg2.Title or "Notification",
-            TextSize = 12, TextColor3 = c,
+            TextSize = 11, TextColor3 = c,
             Font = T.FontB, TextXAlignment = Enum.TextXAlignment.Left,
             RichText = true, ZIndex = 202,
         }, nf)
 
         mk("TextLabel", {
-            Size = UDim2.new(1,-52,0,28), Position = UDim2.new(0,50,0,30),
+            Size = UDim2.new(1,-50,0,24), Position = UDim2.new(0,46,0,28),
             BackgroundTransparency = 1,
             Text = cfg2.Message or "",
-            TextSize = 10, TextColor3 = T.TextSub,
+            TextSize = 9, TextColor3 = T.TextSub,
             Font = T.FontR, TextXAlignment = Enum.TextXAlignment.Left,
             TextWrapped = true, RichText = true, ZIndex = 202,
         }, nf)
@@ -505,7 +509,7 @@ function Library:CreateWindow(cfg)
     function win:Toggle()
         if win._open then
             win._open = false
-            tw(Main, { BackgroundTransparency = 1 }, 0.22) -- Ubah ke BackgroundTransparency
+            tw(Main, { BackgroundTransparency = 1 }, 0.22)
             task.delay(0.22, function()
                 Main.Visible    = false
                 FloatBtn.Visible = true
@@ -514,18 +518,17 @@ function Library:CreateWindow(cfg)
             win._open = true
             FloatBtn.Visible = false
             Main.Visible    = true
-            Main.BackgroundTransparency = 1 -- Ubah ke BackgroundTransparency
-            tw(Main, { BackgroundTransparency = 0 }, 0.28) -- Ubah ke BackgroundTransparency
+            Main.BackgroundTransparency = 1
+            tw(Main, { BackgroundTransparency = 0 }, 0.28)
         end
     end
 
-    -- (Sisa kode di bawah ini tidak ada yang diubah, sama persis seperti aslinya)
     -- ── ADD NAV GROUP ─────────────────────────────────────────
     function win:AddNavGroup(groupName)
         local group = { _pages = {} }
 
         mk("TextLabel", {
-            Size = UDim2.new(1,-4, 0, 18),
+            Size = UDim2.new(1,-4, 0, 16),
             BackgroundTransparency = 1,
             Text = (groupName or ""):upper(),
             TextSize = 8, TextColor3 = T.TextDim,
@@ -547,32 +550,32 @@ function Library:CreateWindow(cfg)
             local page = { _cols = {} }
 
             local navBtn = mk("TextButton", {
-                Size = UDim2.new(1, 0, 0, 34),
+                Size = UDim2.new(1, 0, 0, 30),
                 BackgroundColor3 = T.BG1,
                 Text = "", ZIndex = 14, AutoButtonColor = false,
             }, NavScroll)
             rnd(navBtn, 6)
 
             local indBar = mk("Frame", {
-                Size = UDim2.new(0, 2, 0.5, 0),
+                Size = UDim2.new(0, 3, 0.5, 0),
                 Position = UDim2.new(0, 0, 0.25, 0),
-                BackgroundColor3 = T.Gold,
+                BackgroundColor3 = T.Sky,
                 BackgroundTransparency = 1,
                 ZIndex = 15,
             }, navBtn)
-            rnd(indBar, 1)
+            rnd(indBar, 1.5)
 
             local iconLbl = mk("TextLabel", {
-                Size = UDim2.new(0, 22, 1, 0), Position = UDim2.new(0, 8, 0, 0),
+                Size = UDim2.new(0, 20, 1, 0), Position = UDim2.new(0, 6, 0, 0),
                 BackgroundTransparency = 1,
-                Text = pIcon, TextSize = 13, TextColor3 = T.TextDim,
+                Text = pIcon, TextSize = 12, TextColor3 = T.TextDim,
                 Font = T.FontB, ZIndex = 15,
             }, navBtn)
 
             local nameLbl = mk("TextLabel", {
-                Size = UDim2.new(1,-36,1,0), Position = UDim2.new(0, 32, 0, 0),
+                Size = UDim2.new(1,-30,1,0), Position = UDim2.new(0, 26, 0, 0),
                 BackgroundTransparency = 1,
-                Text = pName, TextSize = 11, TextColor3 = T.TextSub,
+                Text = pName, TextSize = 10, TextColor3 = T.TextSub,
                 Font = T.FontB, TextXAlignment = Enum.TextXAlignment.Left,
                 ZIndex = 15,
             }, navBtn)
@@ -580,12 +583,12 @@ function Library:CreateWindow(cfg)
             local pgScroll = mk("ScrollingFrame", {
                 Size = UDim2.new(1, 0, 1, 0),
                 BackgroundTransparency = 1, BorderSizePixel = 0,
-                ScrollBarThickness = 3, ScrollBarImageColor3 = T.GoldDark,
+                ScrollBarThickness = 3, ScrollBarImageColor3 = T.Sky,
                 CanvasSize = UDim2.new(0,0,0,0),
                 AutomaticCanvasSize = Enum.AutomaticSize.Y,
                 Visible = false, ZIndex = 12,
             }, ContentArea)
-            pad(pgScroll, 8, 10, 8, 8)
+            pad(pgScroll, 6, 10, 6, 6)
 
             local colHolder = mk("Frame", {
                 Size = UDim2.new(1,0,0,0),
@@ -616,59 +619,54 @@ function Library:CreateWindow(cfg)
                     local secFrame = mk("Frame", {
                         Size = UDim2.new(1, 0, 0, 0),
                         AutomaticSize = Enum.AutomaticSize.Y,
-                        BackgroundColor3 = T.BG2,
+                        BackgroundColor3 = T.BG1,
                         BorderSizePixel = 0, ZIndex = 14,
-                        ClipsDescendants = false,
+                        ClipsDescendants = false, -- PENTING: Agar dropdown tidak terpotong
                     }, colFrame)
-                    rnd(secFrame, 7)
-                    brdr(secFrame, Color3.fromRGB(22, 35, 84), 1)
-                    grd(secFrame, G(0,Color3.fromRGB(12,19,50), 1,Color3.fromRGB(7,11,30)), 145)
+                    rnd(secFrame, 8)
+                    brdr(secFrame, T.BG4, 1.5)
+                    grd(secFrame, G(0, Color3.fromRGB(255,255,255), 1, Color3.fromRGB(245,250,255)), 145)
+                    shadow(secFrame)
 
                     local secHdr = mk("Frame", {
-                        Size = UDim2.new(1,0,0,34),
-                        BackgroundColor3 = Color3.fromRGB(9,14,38),
+                        Size = UDim2.new(1,0,0,30),
+                        BackgroundColor3 = T.BG2,
                         ZIndex = 15,
                     }, secFrame)
-                    rnd(secHdr, 7)
+                    rnd(secHdr, 8)
                     mk("Frame", {
                         Size = UDim2.new(1,0,0.5,0), Position = UDim2.new(0,0,0.5,0),
-                        BackgroundColor3 = Color3.fromRGB(9,14,38),
+                        BackgroundColor3 = T.BG2,
                         BorderSizePixel = 0, ZIndex = 15,
                     }, secHdr)
 
                     local dot = mk("Frame", {
-                        Size = UDim2.new(0, 7, 0, 7),
-                        Position = UDim2.new(0, 10, 0.5, -3.5),
-                        BackgroundColor3 = T.Gold, ZIndex = 16,
+                        Size = UDim2.new(0, 6, 0, 6),
+                        Position = UDim2.new(0, 10, 0.5, -3),
+                        BackgroundColor3 = T.Sky, ZIndex = 16,
                     }, secHdr)
-                    rnd(dot, 4)
+                    rnd(dot, 3)
                     mk("ImageLabel", {
                         AnchorPoint = Vector2.new(0.5,0.5),
-                        Size = UDim2.new(0,18,0,18), Position = UDim2.new(0.5,0,0.5,0),
+                        Size = UDim2.new(0,14,0,14), Position = UDim2.new(0.5,0,0.5,0),
                         BackgroundTransparency = 1, ZIndex = 15,
                         Image = "rbxassetid://5028857472",
-                        ImageColor3 = T.Gold, ImageTransparency = 0.6,
+                        ImageColor3 = T.Sky, ImageTransparency = 0.5,
                     }, dot)
 
                     mk("TextLabel", {
-                        Size = UDim2.new(1,-62,1,0), Position = UDim2.new(0,22,0,0),
+                        Size = UDim2.new(1,-50,1,0), Position = UDim2.new(0,20,0,0),
                         BackgroundTransparency = 1,
-                        Text = secName, TextSize = 11, TextColor3 = T.Text,
+                        Text = secName, TextSize = 10, TextColor3 = T.Text,
                         Font = T.FontB, TextXAlignment = Enum.TextXAlignment.Left,
                         ZIndex = 16,
                     }, secHdr)
 
-                    local hdrLine = mk("Frame", {
-                        Size = UDim2.new(1,-12,0,1), Position = UDim2.new(0,6,1,-1),
-                        BackgroundColor3 = T.BG4, ZIndex = 15,
-                    }, secHdr)
-                    grd(hdrLine, G(0,T.BG0, 0.5,T.BG4, 1,T.BG0))
-
                     local colBtn = mk("TextButton", {
-                        Size = UDim2.new(0, 20, 0, 20),
-                        Position = UDim2.new(1, -26, 0.5, -10),
+                        Size = UDim2.new(0, 18, 0, 18),
+                        Position = UDim2.new(1, -24, 0.5, -9),
                         BackgroundColor3 = T.BG4,
-                        Text = "−", TextSize = 14, TextColor3 = T.TextDim,
+                        Text = "−", TextSize = 12, TextColor3 = T.TextSub,
                         Font = T.FontB, ZIndex = 17, AutoButtonColor = false,
                     }, secHdr)
                     rnd(colBtn, 4)
@@ -679,59 +677,60 @@ function Library:CreateWindow(cfg)
                         BackgroundTransparency = 1, ZIndex = 15,
                     }, secFrame)
                     list(secCnt, 4)
-                    pad(secCnt, 38, 7, 7, 7)
+                    pad(secCnt, 34, 6, 6, 6)
 
                     colBtn.MouseButton1Click:Connect(function()
                         collapsed = not collapsed
                         if collapsed then
                             colBtn.Text = "+"
-                            tw(colBtn, { TextColor3 = T.Gold }, 0.14)
+                            tw(colBtn, { TextColor3 = T.Sky }, 0.14)
                             tw(secFrame, { AutomaticSize = Enum.AutomaticSize.None,
-                                          Size = UDim2.new(1,0,0,34) }, 0.18)
+                                          Size = UDim2.new(1,0,0,30) }, 0.18)
                             secCnt.Visible = false
                         else
                             secCnt.Visible = true
                             colBtn.Text = "−"
-                            tw(colBtn, { TextColor3 = T.TextDim }, 0.14)
+                            tw(colBtn, { TextColor3 = T.TextSub }, 0.14)
                             tw(secFrame, { AutomaticSize = Enum.AutomaticSize.Y }, 0.18)
                         end
                     end)
                     colBtn.MouseEnter:Connect(function() tw(colBtn,{BackgroundColor3=T.BG5},0.12) end)
                     colBtn.MouseLeave:Connect(function() tw(colBtn,{BackgroundColor3=T.BG4},0.12) end)
 
+                    -- ── BUTTON ────────────────────────────────
                     function sec:AddButton(cfg5)
                         cfg5 = cfg5 or {}
                         local name = cfg5.Name or "Button"
                         local desc = cfg5.Description or ""
                         local cb   = cfg5.Callback or function() end
 
-                        local h = desc ~= "" and 44 or 30
+                        local h = desc ~= "" and 38 or 26
                         local bf = mk("Frame", {
                             Size = UDim2.new(1,0,0,h),
                             BackgroundColor3 = T.BG3, ZIndex = 16,
                         }, secCnt)
-                        rnd(bf, 5)
+                        rnd(bf, 6)
 
                         mk("TextLabel", {
-                            Size = UDim2.new(1,-26,0,18), Position = UDim2.new(0,10,0,desc~="" and 5 or 6),
+                            Size = UDim2.new(1,-22,0,16), Position = UDim2.new(0,8,0,desc~="" and 4 or 5),
                             BackgroundTransparency=1, Text=name,
-                            TextSize=11, TextColor3=T.Text,
+                            TextSize=10, TextColor3=T.Text,
                             Font=T.FontB, TextXAlignment=Enum.TextXAlignment.Left,
                             RichText=true, ZIndex=17,
                         }, bf)
                         if desc ~= "" then
                             mk("TextLabel",{
-                                Size=UDim2.new(1,-26,0,14), Position=UDim2.new(0,10,0,24),
+                                Size=UDim2.new(1,-22,0,12), Position=UDim2.new(0,8,0,20),
                                 BackgroundTransparency=1, Text=desc,
-                                TextSize=9, TextColor3=T.TextDim,
+                                TextSize=8, TextColor3=T.TextDim,
                                 Font=T.FontR, TextXAlignment=Enum.TextXAlignment.Left,
                                 TextWrapped=true, ZIndex=17,
                             }, bf)
                         end
                         mk("TextLabel",{
-                            Size=UDim2.new(0,14,1,0), Position=UDim2.new(1,-18,0,0),
+                            Size=UDim2.new(0,12,1,0), Position=UDim2.new(1,-16,0,0),
                             BackgroundTransparency=1, Text="›",
-                            TextSize=16, TextColor3=T.GoldDim,
+                            TextSize=14, TextColor3=T.Sky,
                             Font=T.FontB, ZIndex=17,
                         }, bf)
 
@@ -746,6 +745,7 @@ function Library:CreateWindow(cfg)
                         return bf
                     end
 
+                    -- ── TOGGLE ────────────────────────────────
                     function sec:AddToggle(cfg5)
                         cfg5 = cfg5 or {}
                         local name = cfg5.Name     or "Toggle"
@@ -754,51 +754,52 @@ function Library:CreateWindow(cfg)
                         local cb   = cfg5.Callback or function() end
 
                         local tog = { Value = def }
-                        local h   = desc ~= "" and 44 or 30
+                        local h   = desc ~= "" and 38 or 26
 
                         local tf = mk("Frame",{Size=UDim2.new(1,0,0,h),BackgroundColor3=T.BG3,ZIndex=16},secCnt)
-                        rnd(tf, 5)
+                        rnd(tf, 6)
 
                         mk("TextLabel",{
-                            Size=UDim2.new(1,-56,0,18), Position=UDim2.new(0,10,0,desc~="" and 5 or 6),
+                            Size=UDim2.new(1,-50,0,16), Position=UDim2.new(0,8,0,desc~="" and 4 or 5),
                             BackgroundTransparency=1, Text=name,
-                            TextSize=11, TextColor3=T.Text,
+                            TextSize=10, TextColor3=T.Text,
                             Font=T.FontR, TextXAlignment=Enum.TextXAlignment.Left,
                             ZIndex=17,
                         }, tf)
                         if desc ~= "" then
                             mk("TextLabel",{
-                                Size=UDim2.new(1,-56,0,14), Position=UDim2.new(0,10,0,24),
+                                Size=UDim2.new(1,-50,0,12), Position=UDim2.new(0,8,0,20),
                                 BackgroundTransparency=1, Text=desc,
-                                TextSize=9, TextColor3=T.TextDim,
+                                TextSize=8, TextColor3=T.TextDim,
                                 Font=T.FontR, TextXAlignment=Enum.TextXAlignment.Left,
                                 TextWrapped=true, ZIndex=17,
                             }, tf)
                         end
 
                         local swBG = mk("Frame",{
-                            Size=UDim2.new(0,38,0,18),
-                            Position=UDim2.new(1,-46,0.5,-9),
-                            BackgroundColor3 = def and T.Gold or T.BG5,
+                            Size=UDim2.new(0,32,0,16),
+                            Position=UDim2.new(1,-40,0.5,-8),
+                            BackgroundColor3 = def and T.Sky or T.BG5,
                             ZIndex=17,
                         }, tf)
-                        rnd(swBG, 9)
+                        rnd(swBG, 8)
 
                         local knob = mk("Frame",{
                             Size=UDim2.new(0,12,0,12),
-                            Position=UDim2.new(0, def and 22 or 3, 0.5,-6),
-                            BackgroundColor3 = def and T.BG0 or T.TextDim,
+                            Position=UDim2.new(0, def and 18 or 2, 0.5,-6),
+                            BackgroundColor3 = Color3.fromRGB(255,255,255),
                             ZIndex=18,
                         }, swBG)
                         rnd(knob, 6)
+                        brdr(knob, T.BG4, 1)
 
                         local function updateTog()
                             if tog.Value then
-                                tw(swBG, {BackgroundColor3=T.Gold}, 0.18)
-                                tw(knob, {Position=UDim2.new(0,22,0.5,-6),BackgroundColor3=T.BG0}, 0.18)
+                                tw(swBG, {BackgroundColor3=T.Sky}, 0.18)
+                                tw(knob, {Position=UDim2.new(0,18,0.5,-6),BackgroundColor3=Color3.fromRGB(255,255,255)}, 0.18)
                             else
                                 tw(swBG, {BackgroundColor3=T.BG5}, 0.18)
-                                tw(knob, {Position=UDim2.new(0,3,0.5,-6),BackgroundColor3=T.TextDim}, 0.18)
+                                tw(knob, {Position=UDim2.new(0,2,0.5,-6),BackgroundColor3=T.BG4}, 0.18)
                             end
                         end
 
@@ -817,6 +818,7 @@ function Library:CreateWindow(cfg)
                         return tog
                     end
 
+                    -- ── SLIDER ────────────────────────────────
                     function sec:AddSlider(cfg5)
                         cfg5 = cfg5 or {}
                         local name  = cfg5.Name     or "Slider"
@@ -828,43 +830,43 @@ function Library:CreateWindow(cfg)
 
                         local sl = { Value = def }
 
-                        local sf = mk("Frame",{Size=UDim2.new(1,0,0,46),BackgroundColor3=T.BG3,ZIndex=16},secCnt)
-                        rnd(sf, 5)
+                        local sf = mk("Frame",{Size=UDim2.new(1,0,0,40),BackgroundColor3=T.BG3,ZIndex=16},secCnt)
+                        rnd(sf, 6)
 
                         mk("TextLabel",{
-                            Size=UDim2.new(1,-65,0,18), Position=UDim2.new(0,10,0,5),
+                            Size=UDim2.new(1,-55,0,16), Position=UDim2.new(0,8,0,4),
                             BackgroundTransparency=1, Text=name,
-                            TextSize=10, TextColor3=T.TextSub,
+                            TextSize=9, TextColor3=T.TextSub,
                             Font=T.FontR, TextXAlignment=Enum.TextXAlignment.Left,
                             ZIndex=17,
                         }, sf)
                         local valLbl = mk("TextLabel",{
-                            Size=UDim2.new(0,58,0,18), Position=UDim2.new(1,-65,0,5),
+                            Size=UDim2.new(0,48,0,16), Position=UDim2.new(1,-55,0,4),
                             BackgroundTransparency=1, Text=tostring(def)..suf,
-                            TextSize=10, TextColor3=T.Gold,
+                            TextSize=9, TextColor3=T.Sky,
                             Font=T.FontB, TextXAlignment=Enum.TextXAlignment.Right,
                             ZIndex=17,
                         }, sf)
 
                         local track = mk("Frame",{
-                            Size=UDim2.new(1,-16,0,4), Position=UDim2.new(0,8,0,30),
+                            Size=UDim2.new(1,-12,0,4), Position=UDim2.new(0,6,0,26),
                             BackgroundColor3=T.BG5, ZIndex=17,
                         }, sf)
                         rnd(track, 2)
 
                         local rel = (def-smin)/(smax-smin)
-                        local fill = mk("Frame",{Size=UDim2.new(rel,0,1,0),BackgroundColor3=T.Gold,ZIndex=18},track)
+                        local fill = mk("Frame",{Size=UDim2.new(rel,0,1,0),BackgroundColor3=T.Sky,ZIndex=18},track)
                         rnd(fill, 2)
-                        grd(fill, G(0,T.Gold, 1,T.GoldBrt))
+                        grd(fill, G(0,T.Sky, 1,T.SkyBrt))
 
                         local sk = mk("Frame",{
-                            Size=UDim2.new(0,12,0,12),
-                            Position=UDim2.new(rel,-6,0.5,-6),
+                            Size=UDim2.new(0,10,0,10),
+                            Position=UDim2.new(rel,-5,0.5,-5),
                             BackgroundColor3=Color3.fromRGB(255,255,255),
                             ZIndex=19,
                         }, track)
-                        rnd(sk, 6)
-                        brdr(sk, T.Gold, 1.5)
+                        rnd(sk, 5)
+                        brdr(sk, T.Sky, 1.5)
 
                         local sdrag = false
                         local function updateSl(inp)
@@ -873,7 +875,7 @@ function Library:CreateWindow(cfg)
                             sl.Value = v
                             valLbl.Text = tostring(v)..suf
                             fill.Size = UDim2.new(r,0,1,0)
-                            sk.Position = UDim2.new(r,-6,0.5,-6)
+                            sk.Position = UDim2.new(r,-5,0.5,-5)
                             cb(v)
                         end
 
@@ -897,10 +899,10 @@ function Library:CreateWindow(cfg)
                         end)
 
                         sf.MouseEnter:Connect(function()
-                            tw(sk,{Size=UDim2.new(0,16,0,16)},0.10)
+                            tw(sk,{Size=UDim2.new(0,14,0,14)},0.10)
                         end)
                         sf.MouseLeave:Connect(function()
-                            tw(sk,{Size=UDim2.new(0,12,0,12)},0.10)
+                            tw(sk,{Size=UDim2.new(0,10,0,10)},0.10)
                         end)
 
                         function sl:Set(v)
@@ -909,11 +911,12 @@ function Library:CreateWindow(cfg)
                             local r2 = (v-smin)/(smax-smin)
                             valLbl.Text = tostring(v)..suf
                             tw(fill,{Size=UDim2.new(r2,0,1,0)},0.18)
-                            tw(sk,{Position=UDim2.new(r2,-6,0.5,-6)},0.18)
+                            tw(sk,{Position=UDim2.new(r2,-5,0.5,-5)},0.18)
                         end
                         return sl
                     end
 
+                    -- ── DROPDOWN (FIXED CLIPPING) ─────────────
                     function sec:AddDropdown(cfg5)
                         cfg5 = cfg5 or {}
                         local name = cfg5.Name    or "Dropdown"
@@ -924,68 +927,59 @@ function Library:CreateWindow(cfg)
                         local dd   = { Value = def }
                         local open2 = false
 
+                        -- Frame utama dropdown (Tidak di-clip agar list bisa keluar)
                         local df = mk("Frame",{
-                            Size=UDim2.new(1,0,0,30),
+                            Size=UDim2.new(1,0,0,26),
                             BackgroundTransparency=1, ZIndex=16, ClipsDescendants=false,
                         }, secCnt)
 
                         if name ~= "" then
                             mk("TextLabel",{
-                                Size=UDim2.new(0.44,0,1,0),
+                                Size=UDim2.new(0.42,0,1,0),
                                 BackgroundTransparency=1, Text=name,
-                                TextSize=10, TextColor3=T.TextSub,
+                                TextSize=9, TextColor3=T.TextSub,
                                 Font=T.FontR, TextXAlignment=Enum.TextXAlignment.Left,
                                 ZIndex=17,
                             }, df)
                         end
 
                         local selBox = mk("Frame",{
-                            Size=UDim2.new(0.56,0,0,24),
-                            Position=UDim2.new(0.44,0,0.5,-12),
-                            BackgroundColor3=T.BG4, ZIndex=17,
-                        }, selBox or df)
-                        rnd(selBox, 4)
-                        brdr(selBox, T.BG5, 1)
-
-                        selBox = (function()
-                            local s = mk("Frame",{
-                                Size=UDim2.new(0.56,0,0,24),
-                                Position=UDim2.new(0.44,0,0.5,-12),
-                                BackgroundColor3=T.BG4, ZIndex=17,
-                            }, df)
-                            rnd(s, 4)
-                            brdr(s, T.BG5, 1)
-                            return s
-                        end)()
+                            Size=UDim2.new(0.58,0,0,22),
+                            Position=UDim2.new(0.42,0,0.5,-11),
+                            BackgroundColor3=T.BG3, ZIndex=17,
+                        }, df)
+                        rnd(selBox, 5)
+                        brdr(selBox, T.BG4, 1)
 
                         local selTxt = mk("TextLabel",{
-                            Size=UDim2.new(1,-20,1,0), Position=UDim2.new(0,6,0,0),
+                            Size=UDim2.new(1,-18,1,0), Position=UDim2.new(0,6,0,0),
                             BackgroundTransparency=1, Text=def,
-                            TextSize=10, TextColor3=T.TextSub,
+                            TextSize=9, TextColor3=T.Text,
                             Font=T.FontR, TextXAlignment=Enum.TextXAlignment.Left,
                             TextTruncate=Enum.TextTruncate.AtEnd, ZIndex=18,
                         }, selBox)
                         local arrow = mk("TextLabel",{
-                            Size=UDim2.new(0,14,1,0), Position=UDim2.new(1,-15,0,0),
+                            Size=UDim2.new(0,12,1,0), Position=UDim2.new(1,-14,0,0),
                             BackgroundTransparency=1, Text="⌄",
-                            TextSize=10, TextColor3=T.TextDim,
+                            TextSize=10, TextColor3=T.Sky,
                             Font=T.FontB, ZIndex=18,
                         }, selBox)
 
+                        -- List dropdown
                         local dlist = mk("Frame",{
-                            Size=UDim2.new(0.56,0,0,0),
-                            Position=UDim2.new(0.44,0,1,3),
+                            Size=UDim2.new(0.58,0,0,0),
+                            Position=UDim2.new(0.42,0,1,3),
                             BackgroundColor3=T.BG1,
                             Visible=false, ZIndex=55, ClipsDescendants=true,
                         }, df)
-                        rnd(dlist, 5)
-                        brdr(dlist, T.Gold, 1)
-                        grd(dlist, G(0,Color3.fromRGB(9,15,42), 1,Color3.fromRGB(6,9,26)), 135)
+                        rnd(dlist, 6)
+                        brdr(dlist, T.Sky, 1.5)
+                        grd(dlist, G(0, Color3.fromRGB(255,255,255), 1, Color3.fromRGB(245,250,255)), 135)
 
                         local dscroll = mk("ScrollingFrame",{
                             Size=UDim2.new(1,0,1,0), BackgroundTransparency=1,
                             BorderSizePixel=0, ScrollBarThickness=2,
-                            ScrollBarImageColor3=T.GoldDark,
+                            ScrollBarImageColor3=T.Sky,
                             CanvasSize=UDim2.new(0,0,0,0),
                             AutomaticCanvasSize=Enum.AutomaticSize.Y, ZIndex=56,
                         }, dlist)
@@ -999,22 +993,22 @@ function Library:CreateWindow(cfg)
                             for _, opt in ipairs(opts) do
                                 local sel = opt == dd.Value
                                 local ob = mk("TextButton",{
-                                    Size=UDim2.new(1,0,0,24),
-                                    BackgroundColor3 = sel and T.BG5 or T.BG3,
-                                    Text=opt, TextSize=10,
-                                    TextColor3 = sel and T.Gold or T.TextSub,
+                                    Size=UDim2.new(1,0,0,22),
+                                    BackgroundColor3 = sel and T.Sky or T.BG3,
+                                    Text=opt, TextSize=9,
+                                    TextColor3 = sel and Color3.fromRGB(255,255,255) or T.TextSub,
                                     Font = sel and T.FontB or T.FontR,
                                     ZIndex=57, AutoButtonColor=false,
                                 }, dscroll)
-                                rnd(ob, 3)
-                                ob.MouseEnter:Connect(function() tw(ob,{BackgroundColor3=T.BG6,TextColor3=T.Text},0.10) end)
-                                ob.MouseLeave:Connect(function() tw(ob,{BackgroundColor3=sel and T.BG5 or T.BG3,TextColor3=sel and T.Gold or T.TextSub},0.10) end)
+                                rnd(ob, 4)
+                                ob.MouseEnter:Connect(function() tw(ob,{BackgroundColor3=T.SkyBrt,TextColor3=Color3.fromRGB(255,255,255)},0.10) end)
+                                ob.MouseLeave:Connect(function() tw(ob,{BackgroundColor3=sel and T.Sky or T.BG3,TextColor3=sel and Color3.fromRGB(255,255,255) or T.TextSub},0.10) end)
                                 ob.MouseButton1Click:Connect(function()
                                     dd.Value = opt
                                     selTxt.Text = opt
                                     open2 = false
-                                    tw(dlist,{Size=UDim2.new(0.56,0,0,0)},0.15)
-                                    task.delay(0.15,function() dlist.Visible=false df.Size=UDim2.new(1,0,0,30) end)
+                                    tw(dlist,{Size=UDim2.new(0.58,0,0,0)},0.15)
+                                    task.delay(0.15,function() dlist.Visible=false df.Size=UDim2.new(1,0,0,26) end)
                                     tw(arrow,{Rotation=0},0.15)
                                     pop()
                                     cb(opt)
@@ -1023,18 +1017,18 @@ function Library:CreateWindow(cfg)
                         end
                         pop()
 
-                        local cl = mk("TextButton",{Size=UDim2.new(1,0,0,30),BackgroundTransparency=1,Text="",ZIndex=20,AutoButtonColor=false},df)
+                        local cl = mk("TextButton",{Size=UDim2.new(1,0,0,26),BackgroundTransparency=1,Text="",ZIndex=20,AutoButtonColor=false},df)
                         cl.MouseButton1Click:Connect(function()
                             open2 = not open2
                             if open2 then
-                                local h2 = math.min(#opts*26, 130)
-                                dlist.Visible=true dlist.Size=UDim2.new(0.56,0,0,0)
-                                df.Size=UDim2.new(1,0,0,30+h2+5)
-                                tw(dlist,{Size=UDim2.new(0.56,0,0,h2)},0.22,T.EaseB)
+                                local h2 = math.min(#opts*24, 120)
+                                dlist.Visible=true dlist.Size=UDim2.new(0.58,0,0,0)
+                                df.Size=UDim2.new(1,0,0,26+h2+5) -- Perbesar frame agar list muat
+                                tw(dlist,{Size=UDim2.new(0.58,0,0,h2)},0.22,T.EaseB)
                                 tw(arrow,{Rotation=180},0.16)
                             else
-                                tw(dlist,{Size=UDim2.new(0.56,0,0,0)},0.15)
-                                task.delay(0.15,function() dlist.Visible=false df.Size=UDim2.new(1,0,0,30) end)
+                                tw(dlist,{Size=UDim2.new(0.58,0,0,0)},0.15)
+                                task.delay(0.15,function() dlist.Visible=false df.Size=UDim2.new(1,0,0,26) end)
                                 tw(arrow,{Rotation=0},0.15)
                             end
                         end)
@@ -1044,6 +1038,7 @@ function Library:CreateWindow(cfg)
                         return dd
                     end
 
+                    -- ── MULTI DROPDOWN (FIXED CLIPPING) ───────
                     function sec:AddMultiDropdown(cfg5)
                         cfg5 = cfg5 or {}
                         local name = cfg5.Name    or "Multi Select"
@@ -1056,51 +1051,51 @@ function Library:CreateWindow(cfg)
                         local open3 = false
 
                         local mf = mk("Frame",{
-                            Size=UDim2.new(1,0,0,30),
+                            Size=UDim2.new(1,0,0,26),
                             BackgroundTransparency=1, ZIndex=16, ClipsDescendants=false,
                         }, secCnt)
 
                         if name ~= "" then
                             mk("TextLabel",{
-                                Size=UDim2.new(0.44,0,1,0),
+                                Size=UDim2.new(0.42,0,1,0),
                                 BackgroundTransparency=1, Text=name,
-                                TextSize=10, TextColor3=T.TextSub,
+                                TextSize=9, TextColor3=T.TextSub,
                                 Font=T.FontR, TextXAlignment=Enum.TextXAlignment.Left,
                                 ZIndex=17,
                             }, mf)
                         end
 
                         local mBox = mk("Frame",{
-                            Size=UDim2.new(0.56,0,0,24),
-                            Position=UDim2.new(0.44,0,0.5,-12),
-                            BackgroundColor3=T.BG4, ZIndex=17,
+                            Size=UDim2.new(0.58,0,0,22),
+                            Position=UDim2.new(0.42,0,0.5,-11),
+                            BackgroundColor3=T.BG3, ZIndex=17,
                         }, mf)
-                        rnd(mBox, 4)
-                        brdr(mBox, T.BG5, 1)
+                        rnd(mBox, 5)
+                        brdr(mBox, T.BG4, 1)
 
                         local mTxt = mk("TextLabel",{
-                            Size=UDim2.new(1,-36,1,0), Position=UDim2.new(0,6,0,0),
+                            Size=UDim2.new(1,-34,1,0), Position=UDim2.new(0,6,0,0),
                             BackgroundTransparency=1, Text="None selected",
-                            TextSize=10, TextColor3=T.TextSub,
+                            TextSize=9, TextColor3=T.TextSub,
                             Font=T.FontR, TextXAlignment=Enum.TextXAlignment.Left,
                             TextTruncate=Enum.TextTruncate.AtEnd, ZIndex=18,
                         }, mBox)
 
                         local badge = mk("Frame",{
-                            Size=UDim2.new(0,18,0,18), Position=UDim2.new(1,-22,0.5,-9),
+                            Size=UDim2.new(0,16,0,16), Position=UDim2.new(1,-20,0.5,-8),
                             BackgroundColor3=T.BG5, ZIndex=18,
                         }, mBox)
-                        rnd(badge, 9)
+                        rnd(badge, 8)
                         local badgeTxt = mk("TextLabel",{
                             Size=UDim2.new(1,0,1,0), BackgroundTransparency=1,
-                            Text="0", TextSize=9, TextColor3=T.TextDim,
+                            Text="0", TextSize=8, TextColor3=T.TextDim,
                             Font=T.FontB, ZIndex=19,
                         }, badge)
 
                         local marrow = mk("TextLabel",{
-                            Size=UDim2.new(0,13,1,0), Position=UDim2.new(1,1,0,0),
+                            Size=UDim2.new(0,12,1,0), Position=UDim2.new(1,0,0,0),
                             BackgroundTransparency=1, Text="⌄",
-                            TextSize=10, TextColor3=T.TextDim,
+                            TextSize=10, TextColor3=T.Sky,
                             Font=T.FontB, ZIndex=18,
                         }, mBox)
 
@@ -1111,8 +1106,8 @@ function Library:CreateWindow(cfg)
                             end
                             badgeTxt.Text = tostring(cnt)
                             if cnt > 0 then
-                                tw(badge,{BackgroundColor3=T.Gold},0.12)
-                                tw(badgeTxt,{TextColor3=T.BG0},0.12)
+                                tw(badge,{BackgroundColor3=T.Sky},0.12)
+                                tw(badgeTxt,{TextColor3=Color3.fromRGB(255,255,255)},0.12)
                                 mTxt.Text = table.concat(names, ", ")
                             else
                                 tw(badge,{BackgroundColor3=T.BG5},0.12)
@@ -1123,18 +1118,18 @@ function Library:CreateWindow(cfg)
                         updateBadge()
 
                         local ml = mk("Frame",{
-                            Size=UDim2.new(0.56,0,0,0),
-                            Position=UDim2.new(0.44,0,1,3),
+                            Size=UDim2.new(0.58,0,0,0),
+                            Position=UDim2.new(0.42,0,1,3),
                             BackgroundColor3=T.BG1,
                             Visible=false, ZIndex=55, ClipsDescendants=true,
                         }, mf)
-                        rnd(ml, 5)
-                        brdr(ml, T.Gold, 1)
+                        rnd(ml, 6)
+                        brdr(ml, T.Sky, 1.5)
 
                         local mscroll = mk("ScrollingFrame",{
                             Size=UDim2.new(1,0,1,0), BackgroundTransparency=1,
                             BorderSizePixel=0, ScrollBarThickness=2,
-                            ScrollBarImageColor3=T.GoldDark,
+                            ScrollBarImageColor3=T.Sky,
                             CanvasSize=UDim2.new(0,0,0,0),
                             AutomaticCanvasSize=Enum.AutomaticSize.Y, ZIndex=56,
                         }, ml)
@@ -1148,34 +1143,34 @@ function Library:CreateWindow(cfg)
                             for _, opt in ipairs(opts) do
                                 local sel = mdd.Value[opt] == true
                                 local oF = mk("Frame",{
-                                    Size=UDim2.new(1,0,0,24),
-                                    BackgroundColor3 = sel and T.BG5 or T.BG3,
+                                    Size=UDim2.new(1,0,0,22),
+                                    BackgroundColor3 = sel and T.Sky or T.BG3,
                                     ZIndex=57,
                                 }, mscroll)
-                                rnd(oF, 3)
+                                rnd(oF, 4)
 
                                 local chk = mk("Frame",{
-                                    Size=UDim2.new(0,14,0,14), Position=UDim2.new(0,5,0.5,-7),
-                                    BackgroundColor3 = sel and T.Gold or T.BG5,
+                                    Size=UDim2.new(0,12,0,12), Position=UDim2.new(0,5,0.5,-6),
+                                    BackgroundColor3 = sel and Color3.fromRGB(255,255,255) or T.BG5,
                                     ZIndex=58,
                                 }, oF)
                                 rnd(chk, 3)
                                 mk("TextLabel",{
                                     Size=UDim2.new(1,0,1,0), BackgroundTransparency=1,
-                                    Text=sel and "✓" or "", TextSize=9, TextColor3=T.BG0,
+                                    Text=sel and "✓" or "", TextSize=8, TextColor3=T.Sky,
                                     Font=T.FontB, ZIndex=59,
                                 }, chk)
                                 mk("TextLabel",{
-                                    Size=UDim2.new(1,-26,1,0), Position=UDim2.new(0,24,0,0),
+                                    Size=UDim2.new(1,-24,1,0), Position=UDim2.new(0,22,0,0),
                                     BackgroundTransparency=1, Text=opt,
-                                    TextSize=10, TextColor3=sel and T.Gold or T.TextSub,
+                                    TextSize=9, TextColor3=sel and Color3.fromRGB(255,255,255) or T.TextSub,
                                     Font=sel and T.FontB or T.FontR,
                                     TextXAlignment=Enum.TextXAlignment.Left, ZIndex=58,
                                 }, oF)
 
                                 local oc = mk("TextButton",{Size=UDim2.new(1,0,1,0),BackgroundTransparency=1,Text="",ZIndex=60,AutoButtonColor=false},oF)
-                                oc.MouseEnter:Connect(function() tw(oF,{BackgroundColor3=T.BG6},0.10) end)
-                                oc.MouseLeave:Connect(function() tw(oF,{BackgroundColor3=mdd.Value[opt] and T.BG5 or T.BG3},0.10) end)
+                                oc.MouseEnter:Connect(function() tw(oF,{BackgroundColor3=T.SkyBrt},0.10) end)
+                                oc.MouseLeave:Connect(function() tw(oF,{BackgroundColor3=mdd.Value[opt] and T.Sky or T.BG3},0.10) end)
                                 oc.MouseButton1Click:Connect(function()
                                     if mdd.Value[opt] then mdd.Value[opt]=nil else mdd.Value[opt]=true end
                                     updateBadge(); popMDD(); cb(mdd.Value)
@@ -1184,18 +1179,18 @@ function Library:CreateWindow(cfg)
                         end
                         popMDD()
 
-                        local mcl = mk("TextButton",{Size=UDim2.new(1,0,0,30),BackgroundTransparency=1,Text="",ZIndex=20,AutoButtonColor=false},mf)
+                        local mcl = mk("TextButton",{Size=UDim2.new(1,0,0,26),BackgroundTransparency=1,Text="",ZIndex=20,AutoButtonColor=false},mf)
                         mcl.MouseButton1Click:Connect(function()
                             open3 = not open3
                             if open3 then
-                                local h2 = math.min(#opts*26, 130)
-                                ml.Visible=true ml.Size=UDim2.new(0.56,0,0,0)
-                                mf.Size=UDim2.new(1,0,0,30+h2+5)
-                                tw(ml,{Size=UDim2.new(0.56,0,0,h2)},0.22,T.EaseB)
+                                local h2 = math.min(#opts*24, 120)
+                                ml.Visible=true ml.Size=UDim2.new(0.58,0,0,0)
+                                mf.Size=UDim2.new(1,0,0,26+h2+5)
+                                tw(ml,{Size=UDim2.new(0.58,0,0,h2)},0.22,T.EaseB)
                                 tw(marrow,{Rotation=180},0.16)
                             else
-                                tw(ml,{Size=UDim2.new(0.56,0,0,0)},0.15)
-                                task.delay(0.15,function() ml.Visible=false mf.Size=UDim2.new(1,0,0,30) end)
+                                tw(ml,{Size=UDim2.new(0.58,0,0,0)},0.15)
+                                task.delay(0.15,function() ml.Visible=false mf.Size=UDim2.new(1,0,0,26) end)
                                 tw(marrow,{Rotation=0},0.15)
                             end
                         end)
@@ -1204,6 +1199,7 @@ function Library:CreateWindow(cfg)
                         return mdd
                     end
 
+                    -- ── INPUT ─────────────────────────────────
                     function sec:AddInput(cfg5)
                         cfg5 = cfg5 or {}
                         local name = cfg5.Name        or ""
@@ -1212,45 +1208,45 @@ function Library:CreateWindow(cfg)
                         local cb   = cfg5.Callback    or function() end
 
                         local inp = { Value = def }
-                        local h2  = name~="" and 44 or 30
+                        local h2  = name~="" and 38 or 26
 
                         local inf = mk("Frame",{Size=UDim2.new(1,0,0,h2),BackgroundColor3=T.BG3,ZIndex=16},secCnt)
-                        rnd(inf, 5)
+                        rnd(inf, 6)
 
                         if name~="" then
                             mk("TextLabel",{
-                                Size=UDim2.new(1,-10,0,16),Position=UDim2.new(0,8,0,4),
+                                Size=UDim2.new(1,-10,0,14),Position=UDim2.new(0,8,0,3),
                                 BackgroundTransparency=1,Text=name,
-                                TextSize=9,TextColor3=T.Gold,Font=T.FontB,
+                                TextSize=8,TextColor3=T.Sky,Font=T.FontB,
                                 TextXAlignment=Enum.TextXAlignment.Left,ZIndex=17,
                             },inf)
                         end
 
                         local inBG = mk("Frame",{
-                            Size=UDim2.new(1,-12,0,22),
-                            Position=UDim2.new(0,6,0,name~="" and 20 or 4),
+                            Size=UDim2.new(1,-10,0,20),
+                            Position=UDim2.new(0,5,0,name~="" and 18 or 3),
                             BackgroundColor3=T.BG1, ZIndex=17,
                         },inf)
                         rnd(inBG, 4)
-                        brdr(inBG, T.BG5, 1)
+                        brdr(inBG, T.BG4, 1)
 
                         local tb = mk("TextBox",{
                             Size=UDim2.new(1,-10,1,0),Position=UDim2.new(0,5,0,0),
                             BackgroundTransparency=1,Text=def,
                             PlaceholderText=ph,PlaceholderColor3=T.TextDim,
-                            TextSize=10,TextColor3=T.Text,Font=T.FontR,
+                            TextSize=9,TextColor3=T.Text,Font=T.FontR,
                             TextXAlignment=Enum.TextXAlignment.Left,
                             ClearTextOnFocus=false,ZIndex=18,
                         },inBG)
 
                         tb.Focused:Connect(function()
                             for _,v in pairs(inBG:GetDescendants()) do
-                                if v:IsA("UIStroke") then tw(v,{Color=T.Gold},0.18) end
+                                if v:IsA("UIStroke") then tw(v,{Color=T.Sky},0.18) end
                             end
                         end)
                         tb.FocusLost:Connect(function(enter)
                             for _,v in pairs(inBG:GetDescendants()) do
-                                if v:IsA("UIStroke") then tw(v,{Color=T.BG5},0.18) end
+                                if v:IsA("UIStroke") then tw(v,{Color=T.BG4},0.18) end
                             end
                             inp.Value=tb.Text
                             if enter then cb(tb.Text) end
@@ -1263,6 +1259,7 @@ function Library:CreateWindow(cfg)
                         return inp
                     end
 
+                    -- ── PARAGRAPH ─────────────────────────────
                     function sec:AddParagraph(cfg5)
                         cfg5 = cfg5 or {}
                         local ptit = cfg5.Title   or ""
@@ -1270,18 +1267,18 @@ function Library:CreateWindow(cfg)
 
                         local pf = mk("Frame",{
                             Size=UDim2.new(1,0,0,0),AutomaticSize=Enum.AutomaticSize.Y,
-                            BackgroundColor3=Color3.fromRGB(8,12,34),ZIndex=16,
+                            BackgroundColor3=Color3.fromRGB(240, 248, 255),ZIndex=16,
                         },secCnt)
-                        rnd(pf, 5)
+                        rnd(pf, 6)
                         list(pf, 3)
-                        pad(pf, 7,7,8,8)
+                        pad(pf, 6,6,8,8)
 
                         local ptL, pcL
                         if ptit~="" then
                             ptL = mk("TextLabel",{
                                 Size=UDim2.new(1,0,0,0),AutomaticSize=Enum.AutomaticSize.Y,
                                 BackgroundTransparency=1,Text=ptit,
-                                TextSize=11,TextColor3=T.Gold,Font=T.FontB,
+                                TextSize=10,TextColor3=T.Sky,Font=T.FontB,
                                 TextXAlignment=Enum.TextXAlignment.Left,
                                 TextWrapped=true,RichText=true,ZIndex=17,
                             },pf)
@@ -1290,7 +1287,7 @@ function Library:CreateWindow(cfg)
                             pcL = mk("TextLabel",{
                                 Size=UDim2.new(1,0,0,0),AutomaticSize=Enum.AutomaticSize.Y,
                                 BackgroundTransparency=1,Text=pcon,
-                                TextSize=10,TextColor3=T.TextSub,Font=T.FontR,
+                                TextSize=9,TextColor3=T.TextSub,Font=T.FontR,
                                 TextXAlignment=Enum.TextXAlignment.Left,
                                 TextWrapped=true,RichText=true,ZIndex=17,
                             },pf)
@@ -1303,13 +1300,14 @@ function Library:CreateWindow(cfg)
                         return para
                     end
 
+                    -- ── LABEL ─────────────────────────────────
                     function sec:AddLabel(cfg5)
                         cfg5 = cfg5 or {}
-                        local lf = mk("Frame",{Size=UDim2.new(1,0,0,22),BackgroundTransparency=1,ZIndex=16},secCnt)
+                        local lf = mk("Frame",{Size=UDim2.new(1,0,0,20),BackgroundTransparency=1,ZIndex=16},secCnt)
                         local ll = mk("TextLabel",{
                             Size=UDim2.new(1,-8,1,0),Position=UDim2.new(0,4,0,0),
                             BackgroundTransparency=1,Text=cfg5.Text or "Label",
-                            TextSize=10,TextColor3=T.TextSub,Font=T.FontR,
+                            TextSize=9,TextColor3=T.TextSub,Font=T.FontR,
                             TextXAlignment=Enum.TextXAlignment.Left,
                             TextWrapped=true,RichText=true,ZIndex=17,
                         },lf)
@@ -1318,15 +1316,17 @@ function Library:CreateWindow(cfg)
                         return lbl
                     end
 
+                    -- ── SEPARATOR ─────────────────────────────
                     function sec:AddSeparator()
-                        local sf2 = mk("Frame",{Size=UDim2.new(1,0,0,10),BackgroundTransparency=1,ZIndex=16},secCnt)
+                        local sf2 = mk("Frame",{Size=UDim2.new(1,0,0,8),BackgroundTransparency=1,ZIndex=16},secCnt)
                         local sl2 = mk("Frame",{
-                            Size=UDim2.new(0.88,0,0,1),Position=UDim2.new(0.06,0,0.5,0),
-                            BackgroundColor3=T.BG5,ZIndex=17,
+                            Size=UDim2.new(0.9,0,0,1),Position=UDim2.new(0.05,0,0.5,0),
+                            BackgroundColor3=T.BG4,ZIndex=17,
                         },sf2)
-                        grd(sl2, G(0,T.BG0, 0.5,T.BG5, 1,T.BG0))
+                        grd(sl2, G(0,T.BG0, 0.5,T.BG4, 1,T.BG0))
                     end
 
+                    -- ── DISCORD BUTTON ────────────────────────
                     function sec:AddDiscord(cfg5)
                         cfg5 = cfg5 or {}
                         local inv = cfg5.Invite  or ""
@@ -1334,35 +1334,35 @@ function Library:CreateWindow(cfg)
                         local cb2 = cfg5.Callback or function() end
 
                         local dcf = mk("Frame",{
-                            Size=UDim2.new(1,0,0,46),
+                            Size=UDim2.new(1,0,0,40),
                             BackgroundColor3=T.Discord,ZIndex=16,
                         },secCnt)
                         rnd(dcf, 6)
                         grd(dcf, G(0,Color3.fromRGB(100,115,255), 1,Color3.fromRGB(65,78,208)), 135)
 
                         mk("TextLabel",{
-                            Size=UDim2.new(0,28,0,28),Position=UDim2.new(0,8,0.5,-14),
-                            BackgroundTransparency=1,Text="💬",TextSize=20,ZIndex=17,
+                            Size=UDim2.new(0,24,0,24),Position=UDim2.new(0,8,0.5,-12),
+                            BackgroundTransparency=1,Text="💬",TextSize=18,ZIndex=17,
                         },dcf)
                         mk("TextLabel",{
-                            Size=UDim2.new(1,-84,0,18),Position=UDim2.new(0,40,0,6),
+                            Size=UDim2.new(1,-76,0,16),Position=UDim2.new(0,36,0,4),
                             BackgroundTransparency=1,Text="Join Discord",
-                            TextSize=12,TextColor3=Color3.fromRGB(255,255,255),
+                            TextSize=11,TextColor3=Color3.fromRGB(255,255,255),
                             Font=T.FontB,TextXAlignment=Enum.TextXAlignment.Left,ZIndex=17,
                         },dcf)
                         if mem~="" then
                             mk("TextLabel",{
-                                Size=UDim2.new(1,-84,0,14),Position=UDim2.new(0,40,0,26),
+                                Size=UDim2.new(1,-76,0,12),Position=UDim2.new(0,36,0,22),
                                 BackgroundTransparency=1,Text="🟢 "..mem,
-                                TextSize=9,TextColor3=Color3.fromRGB(200,215,255),
+                                TextSize=8,TextColor3=Color3.fromRGB(200,215,255),
                                 Font=T.FontR,TextXAlignment=Enum.TextXAlignment.Left,ZIndex=17,
                             },dcf)
                         end
 
                         local jb = mk("TextButton",{
-                            Size=UDim2.new(0,54,0,24),Position=UDim2.new(1,-62,0.5,-12),
+                            Size=UDim2.new(0,48,0,22),Position=UDim2.new(1,-56,0.5,-11),
                             BackgroundColor3=Color3.fromRGB(255,255,255),
-                            Text="Join",TextSize=11,TextColor3=T.Discord,
+                            Text="Join",TextSize=10,TextColor3=T.Discord,
                             Font=T.FontB,ZIndex=18,AutoButtonColor=false,
                         },dcf)
                         rnd(jb, 5)
@@ -1381,6 +1381,7 @@ function Library:CreateWindow(cfg)
                         return dcf
                     end
 
+                    -- ── KEYBIND ───────────────────────────────
                     function sec:AddKeybind(cfg5)
                         cfg5 = cfg5 or {}
                         local name = cfg5.Name    or "Keybind"
@@ -1390,32 +1391,32 @@ function Library:CreateWindow(cfg)
                         local kb   = { Value = def }
                         local klis = false
 
-                        local kf = mk("Frame",{Size=UDim2.new(1,0,0,30),BackgroundColor3=T.BG3,ZIndex=16},secCnt)
-                        rnd(kf, 5)
+                        local kf = mk("Frame",{Size=UDim2.new(1,0,0,26),BackgroundColor3=T.BG3,ZIndex=16},secCnt)
+                        rnd(kf, 6)
                         mk("TextLabel",{
-                            Size=UDim2.new(1,-72,1,0),Position=UDim2.new(0,10,0,0),
+                            Size=UDim2.new(1,-64,1,0),Position=UDim2.new(0,8,0,0),
                             BackgroundTransparency=1,Text=name,
-                            TextSize=10,TextColor3=T.TextSub,Font=T.FontR,
+                            TextSize=9,TextColor3=T.TextSub,Font=T.FontR,
                             TextXAlignment=Enum.TextXAlignment.Left,ZIndex=17,
                         },kf)
 
                         local kb2 = mk("TextButton",{
-                            Size=UDim2.new(0,62,0,20),Position=UDim2.new(1,-70,0.5,-10),
+                            Size=UDim2.new(0,56,0,18),Position=UDim2.new(1,-62,0.5,-9),
                             BackgroundColor3=T.BG4,
                             Text=def==Enum.KeyCode.Unknown and "NONE" or def.Name,
-                            TextSize=9,TextColor3=T.Gold,Font=T.FontB,
+                            TextSize=8,TextColor3=T.Sky,Font=T.FontB,
                             ZIndex=18,AutoButtonColor=false,
                         },kf)
                         rnd(kb2, 4)
-                        brdr(kb2, T.GoldDark, 1)
+                        brdr(kb2, T.BG5, 1)
 
                         kb2.MouseButton1Click:Connect(function()
-                            if not klis then klis=true kb2.Text="..." tw(kb2,{TextColor3=T.GoldBrt},0.12) end
+                            if not klis then klis=true kb2.Text="..." tw(kb2,{TextColor3=T.SkyBrt},0.12) end
                         end)
                         UIS.InputBegan:Connect(function(inp,gpe)
                             if klis and not gpe and inp.UserInputType==Enum.UserInputType.Keyboard then
                                 kb.Value=inp.KeyCode kb2.Text=inp.KeyCode.Name
-                                tw(kb2,{TextColor3=T.Gold},0.12) klis=false
+                                tw(kb2,{TextColor3=T.Sky},0.12) klis=false
                             elseif not klis and inp.KeyCode==kb.Value then cb(kb.Value) end
                         end)
 
@@ -1439,15 +1440,15 @@ function Library:CreateWindow(cfg)
                     tw(inf.ind,   {BackgroundTransparency = 1},  0.18)
                 end
                 pgScroll.Visible = true
-                tw(navBtn,  {BackgroundColor3 = T.BG4},   0.18)
-                tw(nameLbl, {TextColor3 = T.Gold},         0.18)
-                tw(iconLbl, {TextColor3 = T.Gold},         0.18)
+                tw(navBtn,  {BackgroundColor3 = T.BG2},   0.18)
+                tw(nameLbl, {TextColor3 = T.Sky},         0.18)
+                tw(iconLbl, {TextColor3 = T.Sky},         0.18)
                 tw(indBar,  {BackgroundTransparency = 0},  0.18)
             end
 
             navBtn.MouseButton1Click:Connect(function() page:Select() end)
             navBtn.MouseEnter:Connect(function()
-                if not pgScroll.Visible then tw(navBtn,{BackgroundColor3=T.BG2},0.12) end
+                if not pgScroll.Visible then tw(navBtn,{BackgroundColor3=T.BG3},0.12) end
             end)
             navBtn.MouseLeave:Connect(function()
                 if not pgScroll.Visible then tw(navBtn,{BackgroundColor3=T.BG1},0.12) end
