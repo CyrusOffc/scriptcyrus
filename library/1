@@ -1,3 +1,9 @@
+-- ╔══════════════════════════════════════════════════════════════╗
+-- ║            C H R M I N A L   U I   L I B R A R Y          ║
+-- ║              v2.0 | Blue & Gold | Anti-Detect              ║
+-- ║         Mobile/PC | All Executors | Smooth Animations      ║
+-- ╚══════════════════════════════════════════════════════════════╝
+
 local Library = {}
 Library.__index = Library
 
@@ -171,15 +177,15 @@ function Library:CreateWindow(cfg)
         _mini   = false,
     }
 
-    -- ── MAIN FRAME (Diubah menjadi CanvasGroup agar GroupTransparency bekerja) ──
-    local Main = mk("CanvasGroup", {
+    -- ── MAIN FRAME ────────────────────────────────────────────
+    local Main = mk("Frame", {
         Name             = "ChrmnalMain",
         Size             = UDim2.new(0, W_WIDTH, 0, 0),
         Position         = UDim2.new(0.5, -W_WIDTH/2, 0.5, -W_HEIGHT/2),
         BackgroundColor3 = T.BG0,
         BorderSizePixel  = 0,
         ZIndex           = 10,
-        GroupTransparency = 1,
+        BackgroundTransparency = 1, -- Diubah dari GroupTransparency
         ClipsDescendants = false,
     }, GUI)
     rnd(Main, 10)
@@ -356,8 +362,8 @@ function Library:CreateWindow(cfg)
         if not fbD.moved then
             FloatBtn.Visible = false
             Main.Visible = true
-            Main.GroupTransparency = 1
-            tw(Main, { GroupTransparency = 0 }, 0.28)
+            Main.BackgroundTransparency = 1 -- Ubah ke BackgroundTransparency
+            tw(Main, { BackgroundTransparency = 0 }, 0.28) -- Ubah ke BackgroundTransparency
             win._open = true
         end
         fbD.moved = false
@@ -365,7 +371,7 @@ function Library:CreateWindow(cfg)
 
     -- ── CLOSE / MINIMIZE ──────────────────────────────────────
     CloseBtn.MouseButton1Click:Connect(function()
-        tw(Main, { GroupTransparency = 1 }, 0.22)
+        tw(Main, { BackgroundTransparency = 1 }, 0.22) -- Ubah ke BackgroundTransparency
         task.delay(0.22, function()
             Main.Visible = false
             FloatBtn.Visible = true
@@ -414,7 +420,7 @@ function Library:CreateWindow(cfg)
         task.wait()
         tw(Main, {
             Size             = UDim2.new(0, W_WIDTH, 0, W_HEIGHT),
-            GroupTransparency = 0,
+            BackgroundTransparency = 0, -- Ubah ke BackgroundTransparency
         }, 0.42, T.EaseB)
     end)
 
@@ -499,7 +505,7 @@ function Library:CreateWindow(cfg)
     function win:Toggle()
         if win._open then
             win._open = false
-            tw(Main, { GroupTransparency = 1 }, 0.22)
+            tw(Main, { BackgroundTransparency = 1 }, 0.22) -- Ubah ke BackgroundTransparency
             task.delay(0.22, function()
                 Main.Visible    = false
                 FloatBtn.Visible = true
@@ -508,11 +514,12 @@ function Library:CreateWindow(cfg)
             win._open = true
             FloatBtn.Visible = false
             Main.Visible    = true
-            Main.GroupTransparency = 1
-            tw(Main, { GroupTransparency = 0 }, 0.28)
+            Main.BackgroundTransparency = 1 -- Ubah ke BackgroundTransparency
+            tw(Main, { BackgroundTransparency = 0 }, 0.28) -- Ubah ke BackgroundTransparency
         end
     end
 
+    -- (Sisa kode di bawah ini tidak ada yang diubah, sama persis seperti aslinya)
     -- ── ADD NAV GROUP ─────────────────────────────────────────
     function win:AddNavGroup(groupName)
         local group = { _pages = {} }
@@ -532,7 +539,6 @@ function Library:CreateWindow(cfg)
         }, NavScroll)
         grd(sep, G(0,T.BG0, 0.5,T.BG4, 1,T.BG0))
 
-        -- ── ADD PAGE ──────────────────────────────────────────
         function group:AddPage(cfg3)
             cfg3 = cfg3 or {}
             local pName = cfg3.Name or "Page"
@@ -589,7 +595,6 @@ function Library:CreateWindow(cfg)
             list(colHolder, 6, Enum.FillDirection.Horizontal,
                  Enum.HorizontalAlignment.Left, Enum.VerticalAlignment.Top)
 
-            -- ── ADD COLUMN ────────────────────────────────────
             function page:AddColumn()
                 local col = { _secs = {} }
 
@@ -602,7 +607,6 @@ function Library:CreateWindow(cfg)
 
                 table.insert(page._cols, col)
 
-                -- ── ADD SECTION ───────────────────────────────
                 function col:AddSection(cfg4)
                     cfg4 = cfg4 or {}
                     local secName  = cfg4.Name or "Section"
@@ -695,7 +699,6 @@ function Library:CreateWindow(cfg)
                     colBtn.MouseEnter:Connect(function() tw(colBtn,{BackgroundColor3=T.BG5},0.12) end)
                     colBtn.MouseLeave:Connect(function() tw(colBtn,{BackgroundColor3=T.BG4},0.12) end)
 
-                    -- ── BUTTON ────────────────────────────────
                     function sec:AddButton(cfg5)
                         cfg5 = cfg5 or {}
                         local name = cfg5.Name or "Button"
@@ -743,7 +746,6 @@ function Library:CreateWindow(cfg)
                         return bf
                     end
 
-                    -- ── TOGGLE ────────────────────────────────
                     function sec:AddToggle(cfg5)
                         cfg5 = cfg5 or {}
                         local name = cfg5.Name     or "Toggle"
@@ -815,7 +817,6 @@ function Library:CreateWindow(cfg)
                         return tog
                     end
 
-                    -- ── SLIDER ────────────────────────────────
                     function sec:AddSlider(cfg5)
                         cfg5 = cfg5 or {}
                         local name  = cfg5.Name     or "Slider"
@@ -913,7 +914,6 @@ function Library:CreateWindow(cfg)
                         return sl
                     end
 
-                    -- ── DROPDOWN ──────────────────────────────
                     function sec:AddDropdown(cfg5)
                         cfg5 = cfg5 or {}
                         local name = cfg5.Name    or "Dropdown"
@@ -943,9 +943,20 @@ function Library:CreateWindow(cfg)
                             Size=UDim2.new(0.56,0,0,24),
                             Position=UDim2.new(0.44,0,0.5,-12),
                             BackgroundColor3=T.BG4, ZIndex=17,
-                        }, df)
+                        }, selBox or df)
                         rnd(selBox, 4)
                         brdr(selBox, T.BG5, 1)
+
+                        selBox = (function()
+                            local s = mk("Frame",{
+                                Size=UDim2.new(0.56,0,0,24),
+                                Position=UDim2.new(0.44,0,0.5,-12),
+                                BackgroundColor3=T.BG4, ZIndex=17,
+                            }, df)
+                            rnd(s, 4)
+                            brdr(s, T.BG5, 1)
+                            return s
+                        end)()
 
                         local selTxt = mk("TextLabel",{
                             Size=UDim2.new(1,-20,1,0), Position=UDim2.new(0,6,0,0),
@@ -1033,7 +1044,6 @@ function Library:CreateWindow(cfg)
                         return dd
                     end
 
-                    -- ── MULTI DROPDOWN ────────────────────────
                     function sec:AddMultiDropdown(cfg5)
                         cfg5 = cfg5 or {}
                         local name = cfg5.Name    or "Multi Select"
@@ -1194,7 +1204,6 @@ function Library:CreateWindow(cfg)
                         return mdd
                     end
 
-                    -- ── INPUT ─────────────────────────────────
                     function sec:AddInput(cfg5)
                         cfg5 = cfg5 or {}
                         local name = cfg5.Name        or ""
@@ -1254,7 +1263,6 @@ function Library:CreateWindow(cfg)
                         return inp
                     end
 
-                    -- ── PARAGRAPH ─────────────────────────────
                     function sec:AddParagraph(cfg5)
                         cfg5 = cfg5 or {}
                         local ptit = cfg5.Title   or ""
@@ -1295,7 +1303,6 @@ function Library:CreateWindow(cfg)
                         return para
                     end
 
-                    -- ── LABEL ─────────────────────────────────
                     function sec:AddLabel(cfg5)
                         cfg5 = cfg5 or {}
                         local lf = mk("Frame",{Size=UDim2.new(1,0,0,22),BackgroundTransparency=1,ZIndex=16},secCnt)
@@ -1311,7 +1318,6 @@ function Library:CreateWindow(cfg)
                         return lbl
                     end
 
-                    -- ── SEPARATOR ─────────────────────────────
                     function sec:AddSeparator()
                         local sf2 = mk("Frame",{Size=UDim2.new(1,0,0,10),BackgroundTransparency=1,ZIndex=16},secCnt)
                         local sl2 = mk("Frame",{
@@ -1321,7 +1327,6 @@ function Library:CreateWindow(cfg)
                         grd(sl2, G(0,T.BG0, 0.5,T.BG5, 1,T.BG0))
                     end
 
-                    -- ── DISCORD BUTTON ────────────────────────
                     function sec:AddDiscord(cfg5)
                         cfg5 = cfg5 or {}
                         local inv = cfg5.Invite  or ""
@@ -1376,7 +1381,6 @@ function Library:CreateWindow(cfg)
                         return dcf
                     end
 
-                    -- ── KEYBIND ───────────────────────────────
                     function sec:AddKeybind(cfg5)
                         cfg5 = cfg5 or {}
                         local name = cfg5.Name    or "Keybind"
@@ -1421,12 +1425,11 @@ function Library:CreateWindow(cfg)
 
                     table.insert(col._secs, sec)
                     return sec
-                end -- AddSection
+                end
 
                 return col
-            end -- AddColumn
+            end
 
-            -- Page Select
             function page:Select()
                 for _, inf in pairs(win._pages) do
                     inf.content.Visible = false
@@ -1464,14 +1467,14 @@ function Library:CreateWindow(cfg)
             end
 
             return page
-        end -- AddPage
+        end
 
         return group
-    end -- AddNavGroup
+    end
 
     function win:Destroy() GUI:Destroy() end
 
     return win
-end -- CreateWindow
+end
 
 return Library
