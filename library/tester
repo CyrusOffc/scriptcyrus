@@ -1,52 +1,50 @@
+-- ═══════════════════════════════════════════════════════════
+--  CyioxUI v2.1 - Premium Roblox UI Library
+--  Full Fixed Edition | Support PC & Mobile | All Executors
+-- ═══════════════════════════════════════════════════════════
+
 local CyioxUI = {}
 
 local UserInputService = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-local Mouse = LocalPlayer:GetMouse()
-local CoreGui = game:GetService("CoreGui") or LocalPlayer.PlayerGui
-local HttpService = game:GetService("HttpService")
-local TextService = game:GetService("TextService")
-local RunService = game:GetService("RunService")
-local Stats = game:GetService("Stats")
+local TweenService     = game:GetService("TweenService")
+local Players          = game:GetService("Players")
+local LocalPlayer      = Players.LocalPlayer
+local Mouse            = LocalPlayer:GetMouse()
+local CoreGui          = game:GetService("CoreGui")
+local HttpService      = game:GetService("HttpService")
+local TextService      = game:GetService("TextService")
+local RunService       = game:GetService("RunService")
 
 local ConfigFolder = "CyioxConfigs"
-local IS_MOBILE = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
 
 -- ═══════════════════════════════════════════
---  COLOR PALETTE (Biru Muda + Gold Gradient)
+--  COLOR PALETTE — Biru Muda + Gold
 -- ═══════════════════════════════════════════
 local Palette = {
-    PrimaryLight  = Color3.fromRGB(120, 200, 255),   -- Biru muda
-    PrimaryMid    = Color3.fromRGB(80, 160, 240),
-    PrimaryDeep   = Color3.fromRGB(50, 110, 220),
-    Gold          = Color3.fromRGB(255, 210, 100),   -- Gold
-    GoldDeep      = Color3.fromRGB(230, 170, 50),
-    GoldBright    = Color3.fromRGB(255, 235, 150),
-    BgDark        = Color3.fromRGB(10, 14, 24),
-    BgMid         = Color3.fromRGB(16, 20, 32),
-    BgLight       = Color3.fromRGB(22, 28, 42),
-    CardBg        = Color3.fromRGB(18, 24, 38),
-    StrokeIdle    = Color3.fromRGB(40, 55, 85),
-    TextMain      = Color3.fromRGB(230, 240, 255),
-    TextSub       = Color3.fromRGB(140, 165, 200),
-    TextDim       = Color3.fromRGB(90, 110, 145),
+    PrimaryLight = Color3.fromRGB(120, 200, 255),
+    PrimaryMid   = Color3.fromRGB(80,  160, 240),
+    PrimaryDeep  = Color3.fromRGB(50,  110, 220),
+    Gold         = Color3.fromRGB(255, 210, 100),
+    GoldDeep     = Color3.fromRGB(230, 170, 50),
+    GoldBright   = Color3.fromRGB(255, 235, 150),
+    BgDark       = Color3.fromRGB(10,  14,  24),
+    BgMid        = Color3.fromRGB(16,  20,  32),
+    BgLight      = Color3.fromRGB(22,  28,  42),
+    CardBg       = Color3.fromRGB(18,  24,  38),
+    StrokeIdle   = Color3.fromRGB(40,  55,  85),
+    TextMain     = Color3.fromRGB(230, 240, 255),
+    TextSub      = Color3.fromRGB(140, 165, 200),
+    TextDim      = Color3.fromRGB(90,  110, 145),
 }
 
-local KeySystemData = { SavedKey = nil, IsAuthenticated = false }
-local WatermarkData = { Active = false, Frame = nil, UpdateConnection = nil }
-
 -- ═══════════════════════════════════════════
---  UTILITY FUNCTIONS
+--  UTILITIES
 -- ═══════════════════════════════════════════
-
-local function LerpColor(a, b, t)
-    return Color3.new(
-        a.R + (b.R - a.R) * t,
-        a.G + (b.G - a.G) * t,
-        a.B + (b.B - a.B) * t
-    )
+local function SafeCallback(fn, ...)
+    if type(fn) == "function" then
+        local ok, err = pcall(fn, ...)
+        if not ok then warn("[CyioxUI] Callback error: " .. tostring(err)) end
+    end
 end
 
 local function RippleClick(Button, X, Y, color)
@@ -58,54 +56,30 @@ local function RippleClick(Button, X, Y, color)
         Circle.ImageTransparency = 0.8
         Circle.BackgroundTransparency = 1
         Circle.ZIndex = 10
-        Circle.Name = "Ripple"
         Circle.Parent = Button
         local NewX = X - Circle.AbsolutePosition.X
         local NewY = Y - Circle.AbsolutePosition.Y
         Circle.Position = UDim2.new(0, NewX, 0, NewY)
         local Size = math.max(Button.AbsoluteSize.X, Button.AbsoluteSize.Y) * 2.5
-        local Time = 0.5
         Circle:TweenSizeAndPosition(
             UDim2.new(0, Size, 0, Size),
             UDim2.new(0.5, -Size/2, 0.5, -Size/2),
-            "Out", "Quad", Time, false, nil
+            "Out", "Quad", 0.5, false, nil
         )
-        for i = 1, 12 do
-            Circle.ImageTransparency = Circle.ImageTransparency + 0.014
-            wait(Time / 12)
+        for i = 1, 10 do
+            if not Circle.Parent then break end
+            Circle.ImageTransparency = Circle.ImageTransparency + 0.02
+            task.wait(0.05)
         end
-        Circle:Destroy()
+        if Circle then Circle:Destroy() end
     end)
-end
-
--- Animated gradient effect
-local function AddAnimatedGradient(parent, colors, rotation)
-    local grad = Instance.new("UIGradient", parent)
-    grad.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0.0, colors[1]),
-        ColorSequenceKeypoint.new(0.5, colors[2]),
-        ColorSequenceKeypoint.new(1.0, colors[3] or colors[1]),
-    })
-    grad.Rotation = rotation or 0
-    grad.Offset = Vector2.new(0, 0)
-    
-    local animating = true
-    spawn(function()
-        local t = 0
-        while animating and grad.Parent do
-            t = t + 0.015
-            grad.Offset = Vector2.new(math.sin(t) * 0.3, 0)
-            RunService.Heartbeat:Wait()
-        end
-    end)
-    grad.Destroying:Connect(function() animating = false end)
-    return grad
 end
 
 local function MakeDraggable(topbarObject, object)
     local Dragging, DragInput, DragStart, StartPosition
     topbarObject.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
             Dragging = true
             DragStart = input.Position
             StartPosition = object.Position
@@ -115,7 +89,8 @@ local function MakeDraggable(topbarObject, object)
         end
     end)
     topbarObject.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        if input.UserInputType == Enum.UserInputType.MouseMovement
+        or input.UserInputType == Enum.UserInputType.Touch then
             DragInput = input
         end
     end)
@@ -130,20 +105,14 @@ local function MakeDraggable(topbarObject, object)
     end)
 end
 
-local function MakeDraggableMobileButton(button, object, screenGui)
+local function MakeDraggableMobile(button, object, screenGui)
     local Dragging = false
     local DragInput, DragStart, StartPosition
-    local ClickStartPos = nil
-
-    local function UpdatePos(input)
-        local Delta = input.Position - DragStart
-        local newX = math.clamp(StartPosition.X.Offset + Delta.X, 10, screenGui.AbsoluteSize.X - object.AbsoluteSize.X - 10)
-        local newY = math.clamp(StartPosition.Y.Offset + Delta.Y, 10, screenGui.AbsoluteSize.Y - object.AbsoluteSize.Y - 10)
-        object.Position = UDim2.new(0, newX, 0, newY)
-    end
+    local ClickStartPos
 
     button.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
             Dragging = false
             ClickStartPos = input.Position
             DragStart = input.Position
@@ -154,7 +123,8 @@ local function MakeDraggableMobileButton(button, object, screenGui)
         end
     end)
     button.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        if input.UserInputType == Enum.UserInputType.MouseMovement
+        or input.UserInputType == Enum.UserInputType.Touch then
             if ClickStartPos and not Dragging and (input.Position - ClickStartPos).Magnitude > 5 then
                 Dragging = true
             end
@@ -162,7 +132,12 @@ local function MakeDraggableMobileButton(button, object, screenGui)
         end
     end)
     UserInputService.InputChanged:Connect(function(input)
-        if input == DragInput and Dragging then UpdatePos(input) end
+        if input == DragInput and Dragging then
+            local Delta = input.Position - DragStart
+            local newX = math.clamp(StartPosition.X.Offset + Delta.X, 10, screenGui.AbsoluteSize.X - object.AbsoluteSize.X - 10)
+            local newY = math.clamp(StartPosition.Y.Offset + Delta.Y, 10, screenGui.AbsoluteSize.Y - object.AbsoluteSize.Y - 10)
+            object.Position = UDim2.new(0, newX, 0, newY)
+        end
     end)
     return function() return Dragging end
 end
@@ -176,12 +151,12 @@ local ConfigSystem = {
         ["Default"]  = Palette.PrimaryMid,
         ["Sky"]      = Palette.PrimaryLight,
         ["Gold"]     = Palette.Gold,
-        ["Ocean"]    = Color3.fromRGB(0, 150, 220),
-        ["Aqua"]     = Color3.fromRGB(80, 220, 230),
+        ["Ocean"]    = Color3.fromRGB(0,   150, 220),
+        ["Aqua"]     = Color3.fromRGB(80,  220, 230),
         ["Royal"]    = Color3.fromRGB(100, 130, 255),
         ["Lavender"] = Color3.fromRGB(180, 150, 255),
-        ["Emerald"]  = Color3.fromRGB(80, 220, 160),
-        ["Crimson"]  = Color3.fromRGB(255, 80, 120),
+        ["Emerald"]  = Color3.fromRGB(80,  220, 160),
+        ["Crimson"]  = Color3.fromRGB(255, 80,  120),
         ["Sunset"]   = Color3.fromRGB(255, 140, 80),
         ["Neon"]     = Color3.fromRGB(120, 255, 220),
         ["Pink"]     = Color3.fromRGB(255, 130, 200),
@@ -192,14 +167,18 @@ local ConfigSystem = {
     SliderElements = {},
 }
 
-function ConfigSystem:GetColor() return self.ThemeColors[self.CurrentTheme] or Palette.PrimaryMid end
+function ConfigSystem:GetColor()
+    return self.ThemeColors[self.CurrentTheme] or Palette.PrimaryMid
+end
 
 function ConfigSystem:SetTheme(themeName)
     if self.ThemeColors[themeName] then
         self.CurrentTheme = themeName
         local c = self:GetColor()
         for _, el in pairs(self.ThemeElements) do
-            if type(el) == "table" and el.Update then pcall(el.Update, c) end
+            if type(el) == "table" and type(el.Update) == "function" then
+                pcall(el.Update, c)
+            end
         end
         return true, c
     end
@@ -212,14 +191,19 @@ end
 
 function ConfigSystem:SaveConfig(name, data)
     self:EnsureFolder()
-    local configData = { Name = name, Theme = self.CurrentTheme, Data = data or {}, SavedAt = os.time() }
+    local configData = {
+        Name = name, Theme = self.CurrentTheme,
+        Data = data or {}, SavedAt = os.time()
+    }
     local ok, encoded = pcall(function() return HttpService:JSONEncode(configData) end)
     if ok then
-        writefile(ConfigFolder .. "/" .. name .. ".json", encoded)
-        self.CurrentConfig = name
-        return { Title = "Config", Description = "Saved ✓", Content = "Config '"..name.."' saved!", Color = Palette.Gold, Delay = 3 }
+        local sok = pcall(function() writefile(ConfigFolder .. "/" .. name .. ".json", encoded) end)
+        if sok then
+            self.CurrentConfig = name
+            return { Title = "Config", Description = "Saved ✓", Content = "Config '"..name.."' saved!", Color = Palette.Gold, Delay = 3 }
+        end
     end
-    return { Title = "Config", Description = "Error", Content = "Failed: "..tostring(encoded), Color = Color3.fromRGB(255,80,80), Delay = 3 }
+    return { Title = "Config", Description = "Error", Content = "Failed to save config!", Color = Color3.fromRGB(255,80,80), Delay = 3 }
 end
 
 function ConfigSystem:LoadConfig(name)
@@ -264,7 +248,7 @@ function ConfigSystem:GetConfigList()
 end
 
 -- ═══════════════════════════════════════════
---  NOTIFICATION (Enhanced with glow + gradient)
+--  NOTIFICATION
 -- ═══════════════════════════════════════════
 local function MakeNotify(cfg)
     cfg = cfg or {}
@@ -280,6 +264,7 @@ local function MakeNotify(cfg)
             local ng = Instance.new("ScreenGui")
             ng.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
             ng.Name = "CyioxNotifyGui"
+            ng.ResetOnSpawn = false
             ng.Parent = CoreGui
         end
         local gui = CoreGui.CyioxNotifyGui
@@ -293,9 +278,8 @@ local function MakeNotify(cfg)
             nl.Size = UDim2.new(0, 320, 1, 0)
             nl.Name = "NotifyLayout"
             nl.Parent = gui
-            local count = 0
             gui.NotifyLayout.ChildRemoved:Connect(function()
-                count = 0
+                local count = 0
                 for _, v in gui.NotifyLayout:GetChildren() do
                     if v:IsA("Frame") then
                         TweenService:Create(v, TweenInfo.new(0.25, Enum.EasingStyle.Quad), {
@@ -310,7 +294,9 @@ local function MakeNotify(cfg)
         local layout = gui.NotifyLayout
         local baseY = 0
         for _, v in layout:GetChildren() do
-            if v:IsA("Frame") then baseY = -(v.Position.Y.Offset) + v.Size.Y.Offset + 10 end
+            if v:IsA("Frame") then
+                baseY = -(v.Position.Y.Offset) + v.Size.Y.Offset + 10
+            end
         end
 
         local Wrapper = Instance.new("Frame")
@@ -335,24 +321,6 @@ local function MakeNotify(cfg)
         CardStroke.Thickness = 1.5
         CardStroke.Transparency = 0.3
 
-        -- Gradient overlay
-        local CardGrad = Instance.new("UIGradient", Card)
-        CardGrad.Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Palette.BgLight),
-            ColorSequenceKeypoint.new(1, Palette.BgDark),
-        })
-        CardGrad.Rotation = 45
-
-        -- Glow effect
-        local Glow = Instance.new("ImageLabel", Card)
-        Glow.Image = "rbxassetid://5028857084"
-        Glow.ImageColor3 = cfg.Color
-        Glow.ImageTransparency = 0.7
-        Glow.BackgroundTransparency = 1
-        Glow.Size = UDim2.new(1, 40, 1, 40)
-        Glow.Position = UDim2.new(0, -20, 0, -20)
-        Glow.ZIndex = 0
-
         local Accent = Instance.new("Frame", Card)
         Accent.BackgroundColor3 = cfg.Color
         Accent.BorderSizePixel = 0
@@ -360,6 +328,7 @@ local function MakeNotify(cfg)
         Accent.Position = UDim2.new(0, 0, 0.5, -20)
         Accent.ZIndex = 2
         Instance.new("UICorner", Accent).CornerRadius = UDim.new(0, 4)
+
         local AccentGrad = Instance.new("UIGradient", Accent)
         AccentGrad.Color = ColorSequence.new({
             ColorSequenceKeypoint.new(0, Palette.Gold),
@@ -425,11 +394,6 @@ local function MakeNotify(cfg)
         ProgressFill.BorderSizePixel = 0
         ProgressFill.Size = UDim2.new(1, 0, 1, 0)
         Instance.new("UICorner", ProgressFill).CornerRadius = UDim.new(0, 4)
-        local PFGrad = Instance.new("UIGradient", ProgressFill)
-        PFGrad.Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Palette.Gold),
-            ColorSequenceKeypoint.new(1, cfg.Color),
-        })
 
         local closed = false
         local function DoClose()
@@ -449,10 +413,237 @@ local function MakeNotify(cfg)
 end
 
 -- ═══════════════════════════════════════════
---  MAIN UI CREATOR
+--  KEY SYSTEM
 -- ═══════════════════════════════════════════
 local createMainUI
 
+local function ShowKeySystem(config, KeySystemConfig)
+    local Keys        = KeySystemConfig.Keys or {}
+    local KeyFileName = KeySystemConfig.FileName or "Cyiox_Key"
+    local KeySaveKey  = KeySystemConfig.SaveKey ~= false
+    local KeyLink     = KeySystemConfig.KeyLink or ""
+    local Note        = KeySystemConfig.Note or "💡 Get key from our Discord server"
+    local Subtitle    = KeySystemConfig.Subtitle or "🔐 Enter your key to continue"
+
+    local KeyGui = Instance.new("ScreenGui")
+    KeyGui.Name = "CyioxKeySystem"
+    KeyGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    KeyGui.ResetOnSpawn = false
+    KeyGui.Parent = CoreGui
+
+    local Overlay = Instance.new("Frame", KeyGui)
+    Overlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    Overlay.BackgroundTransparency = 0.4
+    Overlay.BorderSizePixel = 0
+    Overlay.Size = UDim2.new(1, 0, 1, 0)
+
+    local Card = Instance.new("Frame", KeyGui)
+    Card.AnchorPoint = Vector2.new(0.5, 0.5)
+    Card.BackgroundColor3 = Palette.BgMid
+    Card.BorderSizePixel = 0
+    Card.Position = UDim2.new(0.5, 0, 0.5, 0)
+    Card.Size = UDim2.fromOffset(0, 0)
+    Instance.new("UICorner", Card).CornerRadius = UDim.new(0, 14)
+
+    local CardStroke = Instance.new("UIStroke", Card)
+    CardStroke.Color = ConfigSystem:GetColor()
+    CardStroke.Thickness = 2
+    CardStroke.Transparency = 0.3
+
+    local TopBar = Instance.new("Frame", Card)
+    TopBar.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    TopBar.BorderSizePixel = 0
+    TopBar.Size = UDim2.new(1, 0, 0, 4)
+    Instance.new("UICorner", TopBar).CornerRadius = UDim.new(0, 14)
+    local TBG = Instance.new("UIGradient", TopBar)
+    TBG.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Palette.PrimaryLight),
+        ColorSequenceKeypoint.new(0.5, Palette.Gold),
+        ColorSequenceKeypoint.new(1, Palette.PrimaryLight),
+    })
+    spawn(function()
+        local t = 0
+        while TBG.Parent do
+            t = t + 0.02
+            TBG.Offset = Vector2.new(math.sin(t) * 0.5, 0)
+            RunService.Heartbeat:Wait()
+        end
+    end)
+
+    local LogoLabel = Instance.new("TextLabel", Card)
+    LogoLabel.Font = Enum.Font.GothamBlack
+    LogoLabel.Text = "CYIOX UI"
+    LogoLabel.TextColor3 = Palette.TextMain
+    LogoLabel.TextSize = 26
+    LogoLabel.BackgroundTransparency = 1
+    LogoLabel.Position = UDim2.new(0, 24, 0, 22)
+    LogoLabel.Size = UDim2.new(1, -48, 0, 32)
+    LogoLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+    local LogoGrad = Instance.new("UIGradient", LogoLabel)
+    LogoGrad.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Palette.PrimaryLight),
+        ColorSequenceKeypoint.new(1, Palette.Gold),
+    })
+
+    local SubLabel = Instance.new("TextLabel", Card)
+    SubLabel.Font = Enum.Font.Gotham
+    SubLabel.Text = Subtitle
+    SubLabel.TextColor3 = Palette.TextSub
+    SubLabel.TextSize = 12
+    SubLabel.BackgroundTransparency = 1
+    SubLabel.Position = UDim2.new(0, 24, 0, 56)
+    SubLabel.Size = UDim2.new(1, -48, 0, 16)
+    SubLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+    local InputBg = Instance.new("Frame", Card)
+    InputBg.BackgroundColor3 = Palette.BgDark
+    InputBg.BorderSizePixel = 0
+    InputBg.Position = UDim2.new(0, 24, 0, 92)
+    InputBg.Size = UDim2.new(1, -48, 0, 44)
+    Instance.new("UICorner", InputBg).CornerRadius = UDim.new(0, 10)
+    local InputStroke = Instance.new("UIStroke", InputBg)
+    InputStroke.Color = Palette.StrokeIdle
+    InputStroke.Thickness = 1.2
+
+    local KeyBox = Instance.new("TextBox", InputBg)
+    KeyBox.Font = Enum.Font.Gotham
+    KeyBox.PlaceholderText = "Paste key here..."
+    KeyBox.PlaceholderColor3 = Palette.TextDim
+    KeyBox.Text = ""
+    KeyBox.TextColor3 = Palette.TextMain
+    KeyBox.TextSize = 13
+    KeyBox.BackgroundTransparency = 1
+    KeyBox.Position = UDim2.new(0, 14, 0, 0)
+    KeyBox.Size = UDim2.new(1, -28, 1, 0)
+    KeyBox.ClearTextOnFocus = false
+
+    KeyBox.Focused:Connect(function()
+        TweenService:Create(InputStroke, TweenInfo.new(0.2), {Color = ConfigSystem:GetColor(), Thickness = 1.8}):Play()
+    end)
+    KeyBox.FocusLost:Connect(function()
+        TweenService:Create(InputStroke, TweenInfo.new(0.2), {Color = Palette.StrokeIdle, Thickness = 1.2}):Play()
+    end)
+
+    local NoteLabel = Instance.new("TextLabel", Card)
+    NoteLabel.Font = Enum.Font.Gotham
+    NoteLabel.Text = Note
+    NoteLabel.TextColor3 = Palette.TextDim
+    NoteLabel.TextSize = 11
+    NoteLabel.BackgroundTransparency = 1
+    NoteLabel.Position = UDim2.new(0, 24, 0, 144)
+    NoteLabel.Size = UDim2.new(1, -48, 0, 14)
+    NoteLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+    local StatusLabel = Instance.new("TextLabel", Card)
+    StatusLabel.Font = Enum.Font.GothamBold
+    StatusLabel.Text = ""
+    StatusLabel.TextSize = 11
+    StatusLabel.BackgroundTransparency = 1
+    StatusLabel.Position = UDim2.new(0, 24, 0, 164)
+    StatusLabel.Size = UDim2.new(1, -48, 0, 14)
+    StatusLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+    local BtnRow = Instance.new("Frame", Card)
+    BtnRow.BackgroundTransparency = 1
+    BtnRow.Position = UDim2.new(0, 24, 0, 190)
+    BtnRow.Size = UDim2.new(1, -48, 0, 46)
+
+    local function MakeBtn(parent, text, posX, w, primary)
+        local Btn = Instance.new("TextButton", parent)
+        Btn.Font = Enum.Font.GothamBold
+        Btn.Text = text
+        Btn.TextSize = 13
+        Btn.TextColor3 = primary and Palette.BgDark or Palette.TextMain
+        Btn.BackgroundColor3 = primary and ConfigSystem:GetColor() or Palette.BgLight
+        Btn.BorderSizePixel = 0
+        Btn.Position = UDim2.new(0, posX, 0, 0)
+        Btn.Size = UDim2.new(0, w, 1, 0)
+        Btn.AutoButtonColor = false
+        Instance.new("UICorner", Btn).CornerRadius = UDim.new(0, 10)
+        if primary then
+            local bg = Instance.new("UIGradient", Btn)
+            bg.Color = ColorSequence.new({
+                ColorSequenceKeypoint.new(0, Palette.PrimaryLight),
+                ColorSequenceKeypoint.new(1, Palette.Gold),
+            })
+        else
+            local s = Instance.new("UIStroke", Btn)
+            s.Color = Palette.StrokeIdle
+            s.Thickness = 1
+        end
+        Btn.MouseEnter:Connect(function()
+            TweenService:Create(Btn, TweenInfo.new(0.15), {BackgroundTransparency = 0.15}):Play()
+        end)
+        Btn.MouseLeave:Connect(function()
+            TweenService:Create(Btn, TweenInfo.new(0.15), {BackgroundTransparency = 0}):Play()
+        end)
+        return Btn
+    end
+
+    local SubmitBtn = MakeBtn(BtnRow, "SUBMIT", 0, 168, true)
+    local GetKeyBtn = MakeBtn(BtnRow, "GET KEY 🔑", 176, 176, false)
+
+    local function ValidateKey()
+        local entered = KeyBox.Text
+        for _, k in ipairs(Keys) do
+            if entered == k then
+                StatusLabel.TextColor3 = Palette.PrimaryLight
+                StatusLabel.Text = "✓ Key valid! Loading..."
+                if KeySaveKey then
+                    ConfigSystem:EnsureFolder()
+                    pcall(function() writefile(ConfigFolder.."/"..KeyFileName..".txt", entered) end)
+                end
+                task.wait(0.6)
+                TweenService:Create(Card, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Size = UDim2.fromOffset(0, 0)}):Play()
+                task.wait(0.35)
+                KeyGui:Destroy()
+                createMainUI(config)
+                return
+            end
+        end
+        StatusLabel.TextColor3 = Color3.fromRGB(255, 80, 80)
+        StatusLabel.Text = "✗ Invalid key. Try again."
+        for i = 1, 3 do
+            TweenService:Create(InputBg, TweenInfo.new(0.05), {Position = UDim2.new(0, 30, 0, 92)}):Play()
+            task.wait(0.05)
+            TweenService:Create(InputBg, TweenInfo.new(0.05), {Position = UDim2.new(0, 18, 0, 92)}):Play()
+            task.wait(0.05)
+        end
+        TweenService:Create(InputBg, TweenInfo.new(0.05), {Position = UDim2.new(0, 24, 0, 92)}):Play()
+    end
+
+    SubmitBtn.Activated:Connect(ValidateKey)
+    KeyBox.FocusLost:Connect(function(enter) if enter then ValidateKey() end end)
+    GetKeyBtn.Activated:Connect(function()
+        if KeyLink ~= "" then
+            pcall(function() setclipboard(KeyLink) end)
+            StatusLabel.TextColor3 = Palette.Gold
+            StatusLabel.Text = "✓ Link copied to clipboard!"
+        else
+            StatusLabel.TextColor3 = Palette.Gold
+            StatusLabel.Text = "No key link configured."
+        end
+    end)
+
+    local CloseX = Instance.new("TextButton", Card)
+    CloseX.Text = "✕"
+    CloseX.Font = Enum.Font.GothamBold
+    CloseX.TextSize = 14
+    CloseX.TextColor3 = Palette.TextDim
+    CloseX.BackgroundTransparency = 1
+    CloseX.AnchorPoint = Vector2.new(1, 0)
+    CloseX.Position = UDim2.new(1, -12, 0, 12)
+    CloseX.Size = UDim2.new(0, 26, 0, 26)
+    CloseX.ZIndex = 10
+    CloseX.Activated:Connect(function() KeyGui:Destroy() end)
+
+    TweenService:Create(Card, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.fromOffset(400, 300)}):Play()
+end
+
+-- ═══════════════════════════════════════════
+--  PUBLIC API
+-- ═══════════════════════════════════════════
 function CyioxUI:CreateWindow(config)
     config = config or {}
     local KeySystemConfig = config.KeySystem or {}
@@ -461,10 +652,7 @@ function CyioxUI:CreateWindow(config)
         ConfigSystem.CurrentTheme = config.Theme or "Default"
     end
 
-    local shouldShow = true
-
     if KeySystemConfig.Enabled then
-        shouldShow = false
         local Keys = KeySystemConfig.Keys or {}
         local KeyFileName = KeySystemConfig.FileName or "Cyiox_Key"
         local KeySaveKey = KeySystemConfig.SaveKey ~= false
@@ -473,265 +661,36 @@ function CyioxUI:CreateWindow(config)
             ConfigSystem:EnsureFolder()
             local path = ConfigFolder .. "/" .. KeyFileName .. ".txt"
             if isfile(path) then
-                local saved = readfile(path)
-                for _, k in ipairs(Keys) do
-                    if saved == k then
-                        shouldShow = true
-                        KeySystemData.IsAuthenticated = true
-                        KeySystemData.SavedKey = saved
-                        break
-                    end
-                end
-            end
-        end
-
-        if not shouldShow then
-            local KeyGui = Instance.new("ScreenGui")
-            KeyGui.Name = "CyioxKeySystem"
-            KeyGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-            KeyGui.Parent = CoreGui
-
-            local Overlay = Instance.new("Frame", KeyGui)
-            Overlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-            Overlay.BackgroundTransparency = 0.4
-            Overlay.BorderSizePixel = 0
-            Overlay.Size = UDim2.new(1, 0, 1, 0)
-
-            local Card = Instance.new("Frame", KeyGui)
-            Card.AnchorPoint = Vector2.new(0.5, 0.5)
-            Card.BackgroundColor3 = Palette.BgMid
-            Card.BorderSizePixel = 0
-            Card.Position = UDim2.new(0.5, 0, 0.5, 0)
-            Card.Size = UDim2.fromOffset(400, 300)
-            Instance.new("UICorner", Card).CornerRadius = UDim.new(0, 14)
-
-            local CardGrad = Instance.new("UIGradient", Card)
-            CardGrad.Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, Palette.BgLight),
-                ColorSequenceKeypoint.new(1, Palette.BgDark),
-            })
-            CardGrad.Rotation = 135
-
-            local CardStroke = Instance.new("UIStroke", Card)
-            CardStroke.Color = ConfigSystem:GetColor()
-            CardStroke.Thickness = 2
-            CardStroke.Transparency = 0.3
-
-            local TopBar = Instance.new("Frame", Card)
-            TopBar.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            TopBar.BorderSizePixel = 0
-            TopBar.Size = UDim2.new(1, 0, 0, 4)
-            Instance.new("UICorner", TopBar).CornerRadius = UDim.new(0, 14)
-            local TBG = Instance.new("UIGradient", TopBar)
-            TBG.Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, Palette.PrimaryLight),
-                ColorSequenceKeypoint.new(0.5, Palette.Gold),
-                ColorSequenceKeypoint.new(1, Palette.PrimaryLight),
-            })
-            TBG.Rotation = 0
-            spawn(function()
-                local t = 0
-                while TBG.Parent do
-                    t = t + 0.02
-                    TBG.Offset = Vector2.new(math.sin(t) * 0.5, 0)
-                    RunService.Heartbeat:Wait()
-                end
-            end)
-
-            local LogoLabel = Instance.new("TextLabel", Card)
-            LogoLabel.Font = Enum.Font.GothamBlack
-            LogoLabel.Text = "CYIOX UI"
-            LogoLabel.TextColor3 = Palette.TextMain
-            LogoLabel.TextSize = 26
-            LogoLabel.BackgroundTransparency = 1
-            LogoLabel.Position = UDim2.new(0, 24, 0, 22)
-            LogoLabel.Size = UDim2.new(1, -48, 0, 32)
-            LogoLabel.TextXAlignment = Enum.TextXAlignment.Left
-
-            local LogoGrad = Instance.new("UIGradient", LogoLabel)
-            LogoGrad.Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, Palette.PrimaryLight),
-                ColorSequenceKeypoint.new(1, Palette.Gold),
-            })
-            LogoGrad.Rotation = 0
-
-            local SubLabel = Instance.new("TextLabel", Card)
-            SubLabel.Font = Enum.Font.Gotham
-            SubLabel.Text = KeySystemConfig.Subtitle or "🔐 Enter your key to continue"
-            SubLabel.TextColor3 = Palette.TextSub
-            SubLabel.TextSize = 12
-            SubLabel.BackgroundTransparency = 1
-            SubLabel.Position = UDim2.new(0, 24, 0, 56)
-            SubLabel.Size = UDim2.new(1, -48, 0, 16)
-            SubLabel.TextXAlignment = Enum.TextXAlignment.Left
-
-            local InputBg = Instance.new("Frame", Card)
-            InputBg.BackgroundColor3 = Palette.BgDark
-            InputBg.BorderSizePixel = 0
-            InputBg.Position = UDim2.new(0, 24, 0, 92)
-            InputBg.Size = UDim2.new(1, -48, 0, 44)
-            Instance.new("UICorner", InputBg).CornerRadius = UDim.new(0, 10)
-            local InputStroke = Instance.new("UIStroke", InputBg)
-            InputStroke.Color = Palette.StrokeIdle
-            InputStroke.Thickness = 1.2
-
-            local KeyBox = Instance.new("TextBox", InputBg)
-            KeyBox.Font = Enum.Font.Gotham
-            KeyBox.PlaceholderText = "Paste key here..."
-            KeyBox.PlaceholderColor3 = Palette.TextDim
-            KeyBox.Text = ""
-            KeyBox.TextColor3 = Palette.TextMain
-            KeyBox.TextSize = 13
-            KeyBox.BackgroundTransparency = 1
-            KeyBox.Position = UDim2.new(0, 14, 0, 0)
-            KeyBox.Size = UDim2.new(1, -28, 1, 0)
-            KeyBox.ClearTextOnFocus = false
-
-            KeyBox.Focused:Connect(function()
-                TweenService:Create(InputStroke, TweenInfo.new(0.2), {Color = ConfigSystem:GetColor(), Thickness = 1.8}):Play()
-            end)
-            KeyBox.FocusLost:Connect(function()
-                TweenService:Create(InputStroke, TweenInfo.new(0.2), {Color = Palette.StrokeIdle, Thickness = 1.2}):Play()
-            end)
-
-            local NoteLabel = Instance.new("TextLabel", Card)
-            NoteLabel.Font = Enum.Font.Gotham
-            NoteLabel.Text = KeySystemConfig.Note or "💡 Get key from our Discord server"
-            NoteLabel.TextColor3 = Palette.TextDim
-            NoteLabel.TextSize = 11
-            NoteLabel.BackgroundTransparency = 1
-            NoteLabel.Position = UDim2.new(0, 24, 0, 144)
-            NoteLabel.Size = UDim2.new(1, -48, 0, 14)
-            NoteLabel.TextXAlignment = Enum.TextXAlignment.Left
-
-            local StatusLabel = Instance.new("TextLabel", Card)
-            StatusLabel.Font = Enum.Font.GothamBold
-            StatusLabel.Text = ""
-            StatusLabel.TextSize = 11
-            StatusLabel.BackgroundTransparency = 1
-            StatusLabel.Position = UDim2.new(0, 24, 0, 164)
-            StatusLabel.Size = UDim2.new(1, -48, 0, 14)
-            StatusLabel.TextXAlignment = Enum.TextXAlignment.Left
-
-            local BtnRow = Instance.new("Frame", Card)
-            BtnRow.BackgroundTransparency = 1
-            BtnRow.Position = UDim2.new(0, 24, 0, 190)
-            BtnRow.Size = UDim2.new(1, -48, 0, 46)
-
-            local function MakeBtn(parent, text, posX, w, primary)
-                local Btn = Instance.new("TextButton", parent)
-                Btn.Font = Enum.Font.GothamBold
-                Btn.Text = text
-                Btn.TextSize = 13
-                Btn.TextColor3 = primary and Palette.BgDark or Palette.TextMain
-                Btn.BackgroundColor3 = primary and ConfigSystem:GetColor() or Palette.BgLight
-                Btn.BorderSizePixel = 0
-                Btn.Position = UDim2.new(0, posX, 0, 0)
-                Btn.Size = UDim2.new(0, w, 1, 0)
-                Btn.AutoButtonColor = false
-                Instance.new("UICorner", Btn).CornerRadius = UDim.new(0, 10)
-                if primary then
-                    local bg = Instance.new("UIGradient", Btn)
-                    bg.Color = ColorSequence.new({
-                        ColorSequenceKeypoint.new(0, Palette.PrimaryLight),
-                        ColorSequenceKeypoint.new(1, Palette.Gold),
-                    })
-                    bg.Rotation = 0
-                else
-                    local s = Instance.new("UIStroke", Btn)
-                    s.Color = Palette.StrokeIdle
-                    s.Thickness = 1
-                end
-                Btn.MouseEnter:Connect(function()
-                    TweenService:Create(Btn, TweenInfo.new(0.15), {BackgroundTransparency = 0.15}):Play()
-                end)
-                Btn.MouseLeave:Connect(function()
-                    TweenService:Create(Btn, TweenInfo.new(0.15), {BackgroundTransparency = 0}):Play()
-                end)
-                return Btn
-            end
-
-            local SubmitBtn = MakeBtn(BtnRow, "SUBMIT", 0, 168, true)
-            local GetKeyBtn = MakeBtn(BtnRow, "GET KEY 🔑", 176, 176, false)
-
-            local function ValidateKey()
-                local entered = KeyBox.Text
-                for _, k in ipairs(Keys) do
-                    if entered == k then
-                        StatusLabel.TextColor3 = Palette.PrimaryLight
-                        StatusLabel.Text = "✓ Key valid! Loading..."
-                        if KeySaveKey then
-                            ConfigSystem:EnsureFolder()
-                            writefile(ConfigFolder.."/"..KeyFileName..".txt", entered)
+                local ok, saved = pcall(function() return readfile(path) end)
+                if ok and saved then
+                    for _, k in ipairs(Keys) do
+                        if saved == k then
+                            return createMainUI(config)
                         end
-                        KeySystemData.IsAuthenticated = true
-                        KeySystemData.SavedKey = entered
-                        task.wait(0.6)
-                        TweenService:Create(Card, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Size = UDim2.fromOffset(0,0)}):Play()
-                        task.wait(0.3)
-                        KeyGui:Destroy()
-                        createMainUI(config)
-                        return
                     end
                 end
-                StatusLabel.TextColor3 = Color3.fromRGB(255, 80, 80)
-                StatusLabel.Text = "✗ Invalid key. Try again."
-                for i = 1, 3 do
-                    TweenService:Create(InputBg, TweenInfo.new(0.05), {Position = UDim2.new(0, 30, 0, 92)}):Play()
-                    task.wait(0.05)
-                    TweenService:Create(InputBg, TweenInfo.new(0.05), {Position = UDim2.new(0, 18, 0, 92)}):Play()
-                    task.wait(0.05)
-                end
-                TweenService:Create(InputBg, TweenInfo.new(0.05), {Position = UDim2.new(0, 24, 0, 92)}):Play()
             end
-
-            SubmitBtn.Activated:Connect(ValidateKey)
-            KeyBox.FocusLost:Connect(function(enter) if enter then ValidateKey() end end)
-            GetKeyBtn.Activated:Connect(function()
-                local link = KeySystemConfig.KeyLink or ""
-                if link ~= "" then
-                    pcall(function() setclipboard(link) end)
-                    StatusLabel.TextColor3 = Palette.Gold
-                    StatusLabel.Text = "✓ Link copied to clipboard!"
-                else
-                    StatusLabel.TextColor3 = Palette.Gold
-                    StatusLabel.Text = "No key link configured."
-                end
-            end)
-
-            local CloseX = Instance.new("TextButton", Card)
-            CloseX.Text = "✕"
-            CloseX.Font = Enum.Font.GothamBold
-            CloseX.TextSize = 14
-            CloseX.TextColor3 = Palette.TextDim
-            CloseX.BackgroundTransparency = 1
-            CloseX.AnchorPoint = Vector2.new(1, 0)
-            CloseX.Position = UDim2.new(1, -12, 0, 12)
-            CloseX.Size = UDim2.new(0, 26, 0, 26)
-            CloseX.ZIndex = 10
-            CloseX.Activated:Connect(function() KeyGui:Destroy() end)
-
-            -- Open animation
-            Card.Size = UDim2.fromOffset(0, 0)
-            TweenService:Create(Card, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.fromOffset(400, 300)}):Play()
-            return nil
         end
+        ShowKeySystem(config, KeySystemConfig)
+        return nil
     end
 
-    if shouldShow then return createMainUI(config) end
-    return nil
+    return createMainUI(config)
 end
 
+-- ═══════════════════════════════════════════
+--  MAIN UI BUILDER
+-- ═══════════════════════════════════════════
 createMainUI = function(config)
-    local Title           = config.Title             or "CyioxUI"
-    local Theme           = config.Theme             or "Default"
-    local Size            = config.Size              or UDim2.fromOffset(600, 460)
-    local Center          = config.Center            ~= false
-    local Draggable       = config.Draggable         ~= false
-    local MinimizeKey     = config.MinimizeKey        or Enum.KeyCode.RightShift
-    local Badges          = config.Badges            or {}
-    local MinimizeButton  = config.MinimizeButton    ~= false
-    local DiscordLink     = config.DiscordLink       or ""
+    local Title          = config.Title             or "CyioxUI"
+    local Theme          = config.Theme             or "Default"
+    local Size           = config.Size              or UDim2.fromOffset(600, 460)
+    local Center         = config.Center            ~= false
+    local Draggable      = config.Draggable         ~= false
+    local MinimizeKey    = config.MinimizeKey        or Enum.KeyCode.RightShift
+    local Badges         = config.Badges            or {}
+    local MinimizeButton = config.MinimizeButton    ~= false
+    local DiscordLink    = config.DiscordLink       or ""
     local MiniButtonImage = config.MinimizeButton_Image or "rbxassetid://72558237095001"
 
     if ConfigSystem.ThemeColors[Theme] then ConfigSystem.CurrentTheme = Theme end
@@ -757,7 +716,6 @@ createMainUI = function(config)
         ShadowHolder.Position = UDim2.new(0.5, -Size.X.Offset/2, 0.5, -Size.Y.Offset/2)
     end
 
-    -- Glow shadow
     local Shadow = Instance.new("ImageLabel", ShadowHolder)
     Shadow.Image = "rbxassetid://5028857084"
     Shadow.ImageColor3 = GetColor()
@@ -806,7 +764,6 @@ createMainUI = function(config)
     TopFill.Size = UDim2.new(1, 0, 0.5, 0)
     TopFill.ZIndex = 2
 
-    -- Animated gradient accent line
     local AccentLine = Instance.new("Frame", Main)
     AccentLine.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     AccentLine.BorderSizePixel = 0
@@ -829,7 +786,6 @@ createMainUI = function(config)
         end
     end)
 
-    -- Logo dot with pulse
     local LogoDot = Instance.new("Frame", TopBar)
     LogoDot.BackgroundColor3 = GetColor()
     LogoDot.BorderSizePixel = 0
@@ -851,9 +807,9 @@ createMainUI = function(config)
     table.insert(ConfigSystem.ThemeElements, {Update = function(c) LogoGlow.ImageColor3 = c end})
     spawn(function()
         while LogoGlow.Parent do
-            TweenService:Create(LogoGlow, TweenInfo.new(1.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {ImageTransparency = 0.7}):Play()
+            TweenService:Create(LogoGlow, TweenInfo.new(1.5, Enum.EasingStyle.Sine), {ImageTransparency = 0.7}):Play()
             task.wait(1.5)
-            TweenService:Create(LogoGlow, TweenInfo.new(1.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {ImageTransparency = 0.3}):Play()
+            TweenService:Create(LogoGlow, TweenInfo.new(1.5, Enum.EasingStyle.Sine), {ImageTransparency = 0.3}):Play()
             task.wait(1.5)
         end
     end)
@@ -875,7 +831,7 @@ createMainUI = function(config)
         ColorSequenceKeypoint.new(1, Palette.PrimaryLight),
     })
 
-    -- Discord button
+    -- Discord Button
     if DiscordLink ~= "" then
         local DiscordBtn = Instance.new("TextButton", TopBar)
         DiscordBtn.Font = Enum.Font.GothamBold
@@ -908,7 +864,6 @@ createMainUI = function(config)
         end)
     end
 
-    -- Window buttons
     local function MakeWinBtn(offsetX, icon, hoverCol)
         local Btn = Instance.new("TextButton", TopBar)
         Btn.Text = ""
@@ -1031,7 +986,7 @@ createMainUI = function(config)
     local TabCount = 0
     local AllElements = {}
 
-    -- ═══ WINDOW CONTROLS ═══
+    -- Window control buttons
     CloseBtn.Activated:Connect(function()
         TweenService:Create(ShadowHolder, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
             Size = UDim2.new(0, Size.X.Offset, 0, 0)
@@ -1080,7 +1035,7 @@ createMainUI = function(config)
 
     if Draggable then MakeDraggable(TopBar, ShadowHolder) end
 
-    -- ═══ FLOATING BUTTON (Mobile/PC) ═══
+    -- ═══ FLOATING BUTTON ═══
     if MinimizeButton then
         local FloatFrame = Instance.new("Frame", ScreenGui)
         FloatFrame.Name = "FloatMinButton"
@@ -1091,13 +1046,6 @@ createMainUI = function(config)
         FloatFrame.ZIndex = 200
         FloatFrame.Visible = false
         Instance.new("UICorner", FloatFrame).CornerRadius = UDim.new(1, 0)
-
-        local FloatGrad = Instance.new("UIGradient", FloatFrame)
-        FloatGrad.Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Palette.BgLight),
-            ColorSequenceKeypoint.new(1, Palette.BgDark),
-        })
-        FloatGrad.Rotation = 45
 
         local FloatStroke = Instance.new("UIStroke", FloatFrame)
         FloatStroke.Color = GetColor()
@@ -1113,7 +1061,6 @@ createMainUI = function(config)
         FloatImg.Position = UDim2.new(0.19, 0, 0.19, 0)
         FloatImg.ZIndex = 201
 
-        -- Pulse ring
         local PulseRing = Instance.new("Frame", FloatFrame)
         PulseRing.BackgroundTransparency = 1
         PulseRing.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -1134,8 +1081,8 @@ createMainUI = function(config)
                 if FloatFrame.Visible then
                     PulseRing.Size = UDim2.new(1, 0, 1, 0)
                     PulseStroke.Transparency = 0.6
-                    TweenService:Create(PulseRing, TweenInfo.new(1.2, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {Size = UDim2.new(1.6, 0, 1.6, 0)}):Play()
-                    TweenService:Create(PulseStroke, TweenInfo.new(1.2, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {Transparency = 1}):Play()
+                    TweenService:Create(PulseRing, TweenInfo.new(1.2, Enum.EasingStyle.Sine), {Size = UDim2.new(1.6, 0, 1.6, 0)}):Play()
+                    TweenService:Create(PulseStroke, TweenInfo.new(1.2, Enum.EasingStyle.Sine), {Transparency = 1}):Play()
                 end
                 task.wait(1.4)
             end
@@ -1147,7 +1094,7 @@ createMainUI = function(config)
         ClickDetect.Size = UDim2.new(1, 0, 1, 0)
         ClickDetect.ZIndex = 202
 
-        local isDragging = MakeDraggableMobileButton(ClickDetect, FloatFrame, ScreenGui)
+        local isDragging = MakeDraggableMobile(ClickDetect, FloatFrame, ScreenGui)
         local lastTap = 0
 
         ShadowHolder:GetPropertyChangedSignal("Visible"):Connect(function()
@@ -1161,9 +1108,7 @@ createMainUI = function(config)
             if not isDragging() then
                 ShadowHolder.Visible = true
                 ShadowHolder.Size = UDim2.new(0, Size.X.Offset, 0, 0)
-                TweenService:Create(ShadowHolder, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-                    Size = Size
-                }):Play()
+                TweenService:Create(ShadowHolder, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = Size}):Play()
             end
         end)
     end
@@ -1173,7 +1118,7 @@ createMainUI = function(config)
     -- ═══════════════════════════════════════════
 
     local function CreateSection(container, sectionTitle)
-        if not container then return end
+        if not container then return nil end
 
         local Wrapper = Instance.new("Frame", container)
         Wrapper.BackgroundTransparency = 1
@@ -1196,7 +1141,6 @@ createMainUI = function(config)
             ColorSequenceKeypoint.new(0, Palette.BgLight),
             ColorSequenceKeypoint.new(1, Palette.CardBg),
         })
-        HGrad.Rotation = 0
 
         local LeftBar = Instance.new("Frame", Header)
         LeftBar.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
@@ -1276,7 +1220,7 @@ createMainUI = function(config)
             TweenService:Create(SContent, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {Size = UDim2.new(1, 0, 0, targetC)}):Play()
         end)
 
-        task.wait(0.06)
+        task.wait(0.05)
         contentH = SCLayout.AbsoluteContentSize.Y
         SContent.Size = UDim2.new(1, 0, 0, contentH)
         Wrapper.Size = UDim2.new(1, 0, 0, 38 + contentH)
@@ -1285,7 +1229,7 @@ createMainUI = function(config)
     end
 
     local function CreateParagraph(container, title, content)
-        if not container then return end
+        if not container then return nil end
         local P = Instance.new("Frame", container)
         P.BackgroundColor3 = Palette.CardBg
         P.BorderSizePixel = 0
@@ -1322,7 +1266,7 @@ createMainUI = function(config)
     end
 
     local function CreateButton(container, title, content, iconId, callback)
-        if not container then return end
+        if not container then return nil end
         local B = Instance.new("Frame", container)
         B.BackgroundColor3 = Palette.CardBg
         B.BorderSizePixel = 0
@@ -1373,7 +1317,6 @@ createMainUI = function(config)
             ColorSequenceKeypoint.new(0, Palette.PrimaryLight),
             ColorSequenceKeypoint.new(1, Palette.Gold),
         })
-        RBGrad.Rotation = 0
         table.insert(ConfigSystem.ThemeElements, {Update = function(c)
             RBGrad.Color = ColorSequence.new({
                 ColorSequenceKeypoint.new(0, c),
@@ -1381,24 +1324,20 @@ createMainUI = function(config)
             })
         end})
 
-        RunBtn.MouseEnter:Connect(function()
-            TweenService:Create(RunBtn, TweenInfo.new(0.15), {Size = UDim2.new(0, 76, 0, 32)}):Play()
-        end)
-        RunBtn.MouseLeave:Connect(function()
-            TweenService:Create(RunBtn, TweenInfo.new(0.15), {Size = UDim2.new(0, 70, 0, 30)}):Play()
-        end)
-
         local HitBox = Instance.new("TextButton", B)
         HitBox.Text = ""
         HitBox.BackgroundTransparency = 1
         HitBox.Size = UDim2.new(1, 0, 1, 0)
         HitBox.ZIndex = 2
 
-        local function fire()
-            if callback then callback() end
-        end
-        HitBox.Activated:Connect(function() RippleClick(HitBox, Mouse.X, Mouse.Y, GetColor()) fire() end)
-        RunBtn.Activated:Connect(function() RippleClick(RunBtn, Mouse.X, Mouse.Y, Palette.Gold) fire() end)
+        HitBox.Activated:Connect(function()
+            RippleClick(HitBox, Mouse.X, Mouse.Y, GetColor())
+            SafeCallback(callback)
+        end)
+        RunBtn.Activated:Connect(function()
+            RippleClick(RunBtn, Mouse.X, Mouse.Y, Palette.Gold)
+            SafeCallback(callback)
+        end)
 
         B.MouseEnter:Connect(function()
             TweenService:Create(BS, TweenInfo.new(0.2), {Color = GetColor(), Transparency = 0.5}):Play()
@@ -1410,7 +1349,7 @@ createMainUI = function(config)
     end
 
     local function CreateToggle(container, title, content, default, callback, elementId)
-        if not container then return end
+        if not container then return nil end
         local T = Instance.new("Frame", container)
         T.BackgroundColor3 = Palette.CardBg
         T.BorderSizePixel = 0
@@ -1433,7 +1372,7 @@ createMainUI = function(config)
 
         local TC = Instance.new("TextLabel", T)
         TC.Font = Enum.Font.Gotham
-        TC.Text = content
+        TC.Text = content or ""
         TC.TextColor3 = Palette.TextDim
         TC.TextSize = 11
         TC.TextXAlignment = Enum.TextXAlignment.Left
@@ -1462,26 +1401,26 @@ createMainUI = function(config)
 
         local state = default or false
 
-        local function SetState(val)
+        local function SetState(val, fireCallback)
             state = val
             local col = GetColor()
             if val then
-                TweenService:Create(Thumb, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = UDim2.new(0, 23, 0.5, -9), BackgroundColor3 = Palette.Gold}):Play()
+                TweenService:Create(Thumb, TweenInfo.new(0.25, Enum.EasingStyle.Back), {Position = UDim2.new(0, 23, 0.5, -9), BackgroundColor3 = Palette.Gold}):Play()
                 TweenService:Create(Track, TweenInfo.new(0.25), {BackgroundColor3 = col}):Play()
                 TweenService:Create(TrackStroke, TweenInfo.new(0.25), {Color = col, Transparency = 0.4}):Play()
                 TweenService:Create(TT, TweenInfo.new(0.2), {TextColor3 = col}):Play()
                 TweenService:Create(TS, TweenInfo.new(0.2), {Color = col, Transparency = 0.5}):Play()
             else
-                TweenService:Create(Thumb, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = UDim2.new(0, 1, 0.5, -9), BackgroundColor3 = Color3.fromRGB(200, 210, 230)}):Play()
+                TweenService:Create(Thumb, TweenInfo.new(0.25, Enum.EasingStyle.Back), {Position = UDim2.new(0, 1, 0.5, -9), BackgroundColor3 = Color3.fromRGB(200, 210, 230)}):Play()
                 TweenService:Create(Track, TweenInfo.new(0.25), {BackgroundColor3 = Color3.fromRGB(32, 42, 62)}):Play()
                 TweenService:Create(TrackStroke, TweenInfo.new(0.25), {Color = Palette.StrokeIdle, Transparency = 0}):Play()
                 TweenService:Create(TT, TweenInfo.new(0.2), {TextColor3 = Palette.TextMain}):Play()
                 TweenService:Create(TS, TweenInfo.new(0.2), {Color = Palette.StrokeIdle, Transparency = 0}):Play()
             end
-            if callback then callback(state) end
+            if fireCallback ~= false then SafeCallback(callback, state) end
         end
 
-        SetState(state)
+        SetState(state, false)
 
         local TBtn = Instance.new("TextButton", T)
         TBtn.Text = ""
@@ -1491,16 +1430,17 @@ createMainUI = function(config)
         TBtn.AutoButtonColor = false
         TBtn.Activated:Connect(function()
             RippleClick(TBtn, Mouse.X, Mouse.Y, GetColor())
-            SetState(not state)
+            SetState(not state, true)
         end)
 
-        local tFunc = {Value = state, Set = SetState, Type = "Toggle", Id = elementId}
+        local tFunc = {Value = state, Type = "Toggle", Id = elementId}
+        function tFunc:Set(v) SetState(v, false) end
         if elementId then AllElements[elementId] = tFunc end
         return tFunc
     end
 
     local function CreateSlider(container, title, content, minVal, maxVal, defVal, callback, elementId)
-        if not container then return end
+        if not container then return nil end
         local S = Instance.new("Frame", container)
         S.BackgroundColor3 = Palette.CardBg
         S.BorderSizePixel = 0
@@ -1535,7 +1475,7 @@ createMainUI = function(config)
 
         local SC = Instance.new("TextLabel", S)
         SC.Font = Enum.Font.Gotham
-        SC.Text = content
+        SC.Text = content or ""
         SC.TextColor3 = Palette.TextDim
         SC.TextSize = 11
         SC.TextXAlignment = Enum.TextXAlignment.Left
@@ -1553,7 +1493,6 @@ createMainUI = function(config)
         local Fill = Instance.new("Frame", TrackBg)
         Fill.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
         Fill.BorderSizePixel = 0
-        Fill.Position = UDim2.new(0, 0, 0, 0)
         Fill.Size = UDim2.new(0, 0, 1, 0)
         Instance.new("UICorner", Fill).CornerRadius = UDim.new(1, 0)
         local FGrad = Instance.new("UIGradient", Fill)
@@ -1561,7 +1500,6 @@ createMainUI = function(config)
             ColorSequenceKeypoint.new(0, Palette.PrimaryLight),
             ColorSequenceKeypoint.new(1, Palette.Gold),
         })
-        FGrad.Rotation = 0
         table.insert(ConfigSystem.ThemeElements, {Update = function(c)
             FGrad.Color = ColorSequence.new({
                 ColorSequenceKeypoint.new(0, c),
@@ -1582,21 +1520,21 @@ createMainUI = function(config)
 
         local sData = {Min = minVal or 0, Max = maxVal or 100, Value = defVal or minVal or 0, Dragging = false}
 
-        local function SetValue(v)
+        local function SetValue(v, fireCallback)
             v = math.clamp(math.floor(v + 0.5), sData.Min, sData.Max)
             sData.Value = v
             ValLbl.Text = tostring(v)
             local pct = (v - sData.Min) / (sData.Max - sData.Min)
             Fill.Size = UDim2.new(pct, 0, 1, 0)
             Knob.Position = UDim2.new(pct, 0, 0.5, 0)
-            if callback then callback(v) end
+            if fireCallback ~= false then SafeCallback(callback, v) end
         end
 
-        SetValue(sData.Value)
+        SetValue(sData.Value, false)
 
         local function UpdateFromInput(input)
             local pct = math.clamp((input.Position.X - TrackBg.AbsolutePosition.X) / TrackBg.AbsoluteSize.X, 0, 1)
-            SetValue(sData.Min + pct * (sData.Max - sData.Min))
+            SetValue(sData.Min + pct * (sData.Max - sData.Min), true)
         end
 
         TrackBg.InputBegan:Connect(function(inp)
@@ -1617,13 +1555,13 @@ createMainUI = function(config)
         end)
 
         local sFunc = {Value = sData.Value, Type = "Slider", Id = elementId}
-        function sFunc:Set(v) SetValue(v) sFunc.Value = sData.Value end
+        function sFunc:Set(v) SetValue(v, false) end
         if elementId then AllElements[elementId] = sFunc end
         return sFunc
     end
 
     local function CreateInput(container, title, content, placeholder, callback, elementId)
-        if not container then return end
+        if not container then return nil end
         local I = Instance.new("Frame", container)
         I.BackgroundColor3 = Palette.CardBg
         I.BorderSizePixel = 0
@@ -1678,21 +1616,20 @@ createMainUI = function(config)
         function iFunc:Set(v)
             TBox.Text = v
             iFunc.Value = v
-            if callback then callback(v) end
         end
         TBox.FocusLost:Connect(function()
             iFunc.Value = TBox.Text
-            if callback then callback(TBox.Text) end
+            SafeCallback(callback, TBox.Text)
         end)
         if elementId then AllElements[elementId] = iFunc end
         return iFunc
     end
 
     -- ═══════════════════════════════════════════
-    --  ENHANCED DROPDOWN WITH SEARCH
+    --  ENHANCED DROPDOWN (Multi + Search)
     -- ═══════════════════════════════════════════
     local function CreateDropdown(container, title, content, options, multi, defaultValue, callback, elementId)
-        if not container then return end
+        if not container then return nil end
         local D = Instance.new("Frame", container)
         D.BackgroundColor3 = Palette.CardBg
         D.BorderSizePixel = 0
@@ -1745,7 +1682,6 @@ createMainUI = function(config)
         ArrowLbl.Position = UDim2.new(1, -4, 0.5, 0)
         ArrowLbl.Size = UDim2.new(0, 20, 0, 20)
 
-        -- ListPanel
         local ListPanel = Instance.new("Frame", ScreenGui)
         ListPanel.BackgroundColor3 = Palette.BgMid
         ListPanel.BorderSizePixel = 0
@@ -1761,7 +1697,6 @@ createMainUI = function(config)
         LPS.ZIndex = 50
         table.insert(ConfigSystem.ThemeElements, {Update = function(c) LPS.Color = c end})
 
-        -- Search bar
         local SearchBg = Instance.new("Frame", ListPanel)
         SearchBg.BackgroundColor3 = Palette.BgDark
         SearchBg.BorderSizePixel = 0
@@ -1827,7 +1762,7 @@ createMainUI = function(config)
         local dData = {
             Options = options or {},
             AllOptions = options or {},
-            Value = multi and (defaultValue or {}) or defaultValue or nil,
+            Value = multi and (type(defaultValue) == "table" and defaultValue or {}) or defaultValue,
             Multi = multi or false,
             Open = false,
             Search = ""
@@ -1861,13 +1796,13 @@ createMainUI = function(config)
             Opt.BackgroundTransparency = 0.3
             Opt.BorderSizePixel = 0
             Opt.Size = UDim2.new(1, 0, 0, 30)
-            Opt.Name = "Option_" .. optName
+            Opt.Name = "Option_" .. tostring(optName)
             Opt.ZIndex = 52
             Instance.new("UICorner", Opt).CornerRadius = UDim.new(0, 6)
 
             local OL = Instance.new("TextLabel", Opt)
             OL.Font = Enum.Font.Gotham
-            OL.Text = optName
+            OL.Text = tostring(optName)
             OL.TextColor3 = Palette.TextSub
             OL.TextSize = 12
             OL.TextXAlignment = Enum.TextXAlignment.Left
@@ -1926,14 +1861,14 @@ createMainUI = function(config)
                     if o.UpdateVis then o.UpdateVis() end
                 end
                 UpdateDisplay()
-                if callback then callback(dData.Value) end
+                SafeCallback(callback, dData.Value)
                 if not dData.Multi then
                     task.wait(0.08)
-                    -- close list
                     ListPanel.Visible = false
                     dData.Open = false
                     TweenService:Create(ArrowLbl, TweenInfo.new(0.2), {Rotation = 0}):Play()
                     TweenService:Create(SelStroke, TweenInfo.new(0.15), {Color = Palette.StrokeIdle}):Play()
+                    SearchBox.Text = ""
                 end
             end)
 
@@ -1942,9 +1877,7 @@ createMainUI = function(config)
                     TweenService:Create(Opt, TweenInfo.new(0.12), {BackgroundTransparency = 0.1}):Play()
                 end
             end)
-            Opt.MouseLeave:Connect(function()
-                UpdateVis()
-            end)
+            Opt.MouseLeave:Connect(function() UpdateVis() end)
 
             UpdateVis()
             OptionFrames[optName] = {Frame = Opt, UpdateVis = UpdateVis}
@@ -1956,7 +1889,7 @@ createMainUI = function(config)
                 if c:IsA("Frame") then c:Destroy() end
             end
             OptionFrames = {}
-            local search = string.lower(dData.Search or "")
+            local search = string.lower(tostring(dData.Search or ""))
             for _, opt in ipairs(dData.Options) do
                 if search == "" or string.find(string.lower(tostring(opt)), search, 1, true) then
                     CreateOption(opt)
@@ -2006,8 +1939,8 @@ createMainUI = function(config)
             ToggleList()
         end)
 
-        local conn
-        conn = UserInputService.InputBegan:Connect(function(inp)
+        local outsideConn
+        outsideConn = UserInputService.InputBegan:Connect(function(inp)
             if (inp.UserInputType == Enum.UserInputType.MouseButton1 or inp.UserInputType == Enum.UserInputType.Touch) and dData.Open then
                 local mp = inp.Position
                 local lp = ListPanel.AbsolutePosition
@@ -2020,8 +1953,9 @@ createMainUI = function(config)
                 end
             end
         end)
+
         D.Destroying:Connect(function()
-            if conn then conn:Disconnect() end
+            if outsideConn then outsideConn:Disconnect() end
             if ListPanel and ListPanel.Parent then ListPanel:Destroy() end
         end)
 
@@ -2122,6 +2056,7 @@ createMainUI = function(config)
 
         TabContents[tabName] = TabContent
 
+        local switchRef = nil
         local function SwitchTab()
             for _, cont in pairs(TabContents) do cont.Visible = false end
             for _, item in SidebarScroll:GetChildren() do
@@ -2148,6 +2083,7 @@ createMainUI = function(config)
             ContentScroll.CanvasSize = UDim2.new(0, 0, 0, TCLayout.AbsoluteContentSize.Y + 10)
             ContentScroll.CanvasPosition = Vector2.new(0, 0)
         end
+        switchRef = SwitchTab
 
         TabBtn.Activated:Connect(function()
             RippleClick(TabBtn, Mouse.X, Mouse.Y, GetColor())
@@ -2155,13 +2091,12 @@ createMainUI = function(config)
         end)
         TabBtn.MouseButton1Click:Connect(function() SwitchTab() end)
 
-        return TabContent, SwitchTab
+        return TabContent, switchRef
     end
 
     -- ═══ CONFIG TAB ═══
     local ConfigTabContent = CreateTabButton("Config", "rbxassetid://16932740082", true)
     CreateParagraph(ConfigTabContent, "⚙️ CyioxUI Configuration", "Manage themes, animations, and save/load your configs.")
-
     local themeList = {}
     for k in pairs(ConfigSystem.ThemeColors) do table.insert(themeList, k) end
     table.sort(themeList)
@@ -2229,7 +2164,7 @@ createMainUI = function(config)
         if not firstTabSwitched then
             firstTabSwitched = true
             task.wait(0.05)
-            sw()
+            if sw then sw() end
         end
         return cont
     end
@@ -2238,9 +2173,7 @@ createMainUI = function(config)
         for _, item in SidebarScroll:GetChildren() do
             if item:IsA("Frame") and item.Name == "TabItem_" .. name then
                 local btn = item:FindFirstChildOfClass("TextButton")
-                if btn then
-                    for _, c in ipairs(btn:GetConnections and {} or {}) do end
-                end
+                if btn then btn:Activate() end
             end
         end
     end
@@ -2256,7 +2189,6 @@ createMainUI = function(config)
     function Window:SetTheme(name) return ConfigSystem:SetTheme(name) end
     function Window:Destroy() ScreenGui:Destroy() end
 
-    -- Open animation
     ShadowHolder.Size = UDim2.new(0, Size.X.Offset, 0, 0)
     TweenService:Create(ShadowHolder, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = Size}):Play()
 
