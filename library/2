@@ -1,29 +1,10 @@
---[[
-    CyrusLib v1.3.0 - Premium Blue/Gold Roblox UI Library
-    Pure Luau, no external deps.
-
-    CHANGELOG v1.3.0:
-      ✅ FIXED  : Window background tidak lagi "nyangkut" warna lama saat ganti theme
-      ✅ FIXED  : Slider row/title sekarang diambil langsung dari BaseRow (tidak lagi menebak child)
-      ✅ FIXED  : Dropdown / MultiDropdown / ColorPicker popup otomatis membuka ke atas
-                  kalau ruang di bawah kurang (tidak lagi kepotong di layar bawah)
-      ✅ FIXED  : Keybind bisa dibatalkan dengan Escape, tidak nyangkut di state "..."
-      ✅ ADDED  : Obj:Destroy() dan Obj:SetVisible() di semua elemen (Button, Toggle,
-                  Slider, Dropdown, MultiDropdown, Input, Label, Keybind, ColorPicker)
-      ✅ ADDED  : Notify Type "warning" + warna Warning di theme
-      ✅ ADDED  : Window:SetTitle() / Window:Rename()
-      ✅ IMPROVED : Konsistensi penamaan & komentar per-bagian dirapikan
-
-    Usage:
-        local Library = loadstring(game:HttpGet("...CyrusLib.lua"))()
-]]
 
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local HttpService = game:GetService("HttpService")
-local TextService = game:GetService("TextService")
+local GuiService = game:GetService("GuiService")
 
 local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
@@ -31,6 +12,46 @@ local Mouse = LocalPlayer:GetMouse()
 local ParentGui do
     local ok, gui = pcall(function() return gethui and gethui() or nil end)
     ParentGui = (ok and gui) or LocalPlayer:WaitForChild("PlayerGui")
+end
+
+----------------------------------------------------------------------
+-- DEVICE / RESPONSIVE DETECTION
+----------------------------------------------------------------------
+local Device = {}
+
+function Device.GetViewport()
+    local cam = workspace.CurrentCamera
+    return cam and cam.ViewportSize or Vector2.new(1280, 720)
+end
+
+-- true if this session is primarily touch-driven (phone/tablet) with no mouse.
+function Device.IsTouch()
+    return UserInputService.TouchEnabled and not UserInputService.MouseEnabled
+end
+
+-- "Mobile" | "Tablet" | "Desktop" based on touch + viewport width.
+function Device.GetClass()
+    local vp = Device.GetViewport()
+    local touch = Device.IsTouch()
+    if touch and vp.X < 700 then
+        return "Mobile"
+    elseif touch and vp.X < 1100 then
+        return "Tablet"
+    end
+    return "Desktop"
+end
+
+-- Scale multiplier applied to fonts / paddings / hit targets so the same
+-- layout logic reads well on a 5" phone and a 27" monitor alike.
+function Device.GetUIScale()
+    local vp = Device.GetViewport()
+    local class = Device.GetClass()
+    if class == "Mobile" then
+        return math.clamp(vp.X / 420, 0.85, 1.15)
+    elseif class == "Tablet" then
+        return math.clamp(vp.X / 900, 0.95, 1.2)
+    end
+    return math.clamp(vp.X / 1440, 0.85, 1.25)
 end
 
 ----------------------------------------------------------------------
@@ -162,6 +183,36 @@ function Utility.Hover(target, normalColor, hoverColor)
     end)
 end
 
+-- Native-feeling "press" feedback: scales the element down slightly on
+-- press/touch-down and back up on release. Works with mouse and touch.
+function Utility.PressFeedback(target, amount)
+    amount = amount or 0.04
+    local baseSize = target.Size
+    local function down()
+        Utility.Tween(target, 0.08, {
+            Size = UDim2.new(
+                baseSize.X.Scale, baseSize.X.Offset * (1 - amount),
+                baseSize.Y.Scale, baseSize.Y.Offset * (1 - amount)
+            )
+        }, Enum.EasingStyle.Quad)
+    end
+    local function up()
+        Utility.Tween(target, 0.12, {Size = baseSize}, Enum.EasingStyle.Back)
+    end
+    target.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
+            down()
+        end
+    end)
+    target.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
+            up()
+        end
+    end)
+end
+
 -- Adds a standard :Destroy() and :SetVisible() to any element Obj that has
 -- an `Instance` field. Called at the end of every Create* constructor so
 -- all elements behave consistently.
@@ -191,7 +242,7 @@ Library.Registry = {}
 Library.Flags = {}
 Library.Elements = {}
 Library.ActiveWindow = nil
-Library.Version = "1.3.0"
+Library.Version = "2.0.0"
 
 function Library:RegisterTheme(name, theme)
     self.Themes[name] = theme
@@ -218,30 +269,25 @@ local function Themed(instance, updateFn)
     updateFn(Library.CurrentTheme)
 end
 
+-- Slightly richer, more "modern glass" palette than v1: deeper background,
+-- softer secondary layers, a two-tone accent (blue -> gold) used for glow.
 Library:RegisterTheme("BlueGold", {
-    Background   = Color3.fromRGB(9, 13, 26),
-    Secondary    = Color3.fromRGB(15, 21, 40),
-    Elevated     = Color3.fromRGB(19, 27, 51),
+    Background   = Color3.fromRGB(8, 11, 22),
+    Secondary    = Color3.fromRGB(14, 19, 36),
+    Elevated     = Color3.fromRGB(19, 26, 48),
+    Glass        = Color3.fromRGB(22, 30, 55),
     Stroke       = Color3.fromRGB(45, 70, 130),
-    Accent       = Color3.fromRGB(58, 142, 255),
+    Accent       = Color3.fromRGB(64, 150, 255),
     AccentDark   = Color3.fromRGB(28, 88, 196),
-    Gold         = Color3.fromRGB(255, 196, 61),
+    Gold         = Color3.fromRGB(255, 200, 70),
     GoldDark     = Color3.fromRGB(196, 148, 30),
-    Text         = Color3.fromRGB(235, 240, 255),
-    SubText      = Color3.fromRGB(148, 160, 194),
+    Text         = Color3.fromRGB(238, 242, 255),
+    SubText      = Color3.fromRGB(150, 162, 196),
     Success      = Color3.fromRGB(72, 201, 130),
     Warning      = Color3.fromRGB(255, 170, 60),
     Error        = Color3.fromRGB(232, 84, 84),
     Border       = Color3.fromRGB(60, 92, 165),
 })
-
-----------------------------------------------------------------------
--- SCREEN HELPERS (dipakai popup supaya tidak kepotong layar)
-----------------------------------------------------------------------
-local function GetViewportSize()
-    local cam = workspace.CurrentCamera
-    return cam and cam.ViewportSize or Vector2.new(1280, 720)
-end
 
 ----------------------------------------------------------------------
 -- GLOBAL OVERLAY (untuk dropdown, tooltip, color picker)
@@ -254,17 +300,19 @@ local function GetOverlay()
         ResetOnSpawn = false,
         ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
         DisplayOrder = 999,
+        IgnoreGuiInset = true,
         Parent = ParentGui,
     })
     return OverlayGui
 end
 
 ----------------------------------------------------------------------
--- ELEMENT BASE ROW
+-- ELEMENT BASE ROW (responsive: taller rows + bigger text on touch)
 ----------------------------------------------------------------------
 local function BaseRow(parent, title, desc, height)
     local theme = Library.CurrentTheme
-    height = height or (desc and 52 or 44)
+    local mobile = Device.GetClass() ~= "Desktop"
+    height = height or (desc and (mobile and 58 or 52) or (mobile and 50 or 44))
 
     local row = Create("Frame", {
         BackgroundColor3 = theme.Secondary,
@@ -292,12 +340,12 @@ local function BaseRow(parent, title, desc, height)
     local titleLabel = Create("TextLabel", {
         Text = title or "",
         Font = Enum.Font.GothamBold,
-        TextSize = 14,
+        TextSize = mobile and 15 or 14,
         TextColor3 = theme.Text,
         TextXAlignment = Enum.TextXAlignment.Left,
         BackgroundTransparency = 1,
         Position = desc and UDim2.new(0, 30, 0, 8) or UDim2.new(0, 30, 0.5, 0),
-        Size = desc and UDim2.new(1, -180, 0, 16) or UDim2.new(1, -180, 0, 20),
+        Size = desc and UDim2.new(1, -190, 0, 18) or UDim2.new(1, -190, 0, 20),
         AnchorPoint = desc and Vector2.new(0, 0) or Vector2.new(0, 0.5),
         Parent = row,
     })
@@ -308,12 +356,12 @@ local function BaseRow(parent, title, desc, height)
         descLabel = Create("TextLabel", {
             Text = desc,
             Font = Enum.Font.Gotham,
-            TextSize = 12,
+            TextSize = mobile and 13 or 12,
             TextColor3 = theme.SubText,
             TextXAlignment = Enum.TextXAlignment.Left,
             BackgroundTransparency = 1,
-            Position = UDim2.new(0, 30, 0, 26),
-            Size = UDim2.new(1, -180, 0, 16),
+            Position = UDim2.new(0, 30, 0, 28),
+            Size = UDim2.new(1, -190, 0, 18),
             Parent = row,
         })
         Themed(descLabel, function(t) descLabel.TextColor3 = t.SubText end)
@@ -328,6 +376,7 @@ end
 local function CreateButton(parent, config)
     config = config or {}
     local theme = Library.CurrentTheme
+    local mobile = Device.GetClass() ~= "Desktop"
     local row, titleLabel = BaseRow(parent, config.Title, config.Description)
 
     local btn = Create("TextButton", {
@@ -336,22 +385,25 @@ local function CreateButton(parent, config)
         TextSize = 13,
         TextColor3 = Color3.fromRGB(15, 15, 20),
         BackgroundColor3 = theme.Gold,
-        Size = UDim2.fromOffset(90, 32),
+        Size = mobile and UDim2.fromOffset(96, 40) or UDim2.fromOffset(90, 32),
         Position = UDim2.new(1, -14, 0.5, 0),
         AnchorPoint = Vector2.new(1, 0.5),
         AutoButtonColor = false,
         Parent = row,
     })
-    Utility.Corner(btn, 8)
+    Utility.Corner(btn, 9)
     Utility.Ripple(btn, Color3.new(1,1,1))
+    Utility.PressFeedback(btn, 0.06)
     Themed(btn, function(t) btn.BackgroundColor3 = t.Gold end)
 
-    btn.MouseEnter:Connect(function()
-        Utility.Tween(btn, 0.15, {Size = UDim2.fromOffset(94, 34), BackgroundColor3 = theme.GoldDark})
-    end)
-    btn.MouseLeave:Connect(function()
-        Utility.Tween(btn, 0.15, {Size = UDim2.fromOffset(90, 32), BackgroundColor3 = theme.Gold})
-    end)
+    if not mobile then
+        btn.MouseEnter:Connect(function()
+            Utility.Tween(btn, 0.15, {BackgroundColor3 = theme.GoldDark})
+        end)
+        btn.MouseLeave:Connect(function()
+            Utility.Tween(btn, 0.15, {BackgroundColor3 = theme.Gold})
+        end)
+    end
 
     local Obj = {Instance = row}
     btn.MouseButton1Click:Connect(function()
@@ -363,17 +415,22 @@ local function CreateButton(parent, config)
 end
 
 ----------------------------------------------------------------------
--- TOGGLE
+-- TOGGLE (bigger tap target on mobile)
 ----------------------------------------------------------------------
 local function CreateToggle(parent, config)
     config = config or {}
     local theme = Library.CurrentTheme
+    local mobile = Device.GetClass() ~= "Desktop"
     local row, titleLabel = BaseRow(parent, config.Title, config.Description)
     local state = config.Default or false
 
+    local trackSize = mobile and UDim2.fromOffset(48, 26) or UDim2.fromOffset(42, 22)
+    local knobSize = mobile and 18 or 16
+    local knobOnX = mobile and 25 or 23
+
     local track = Create("Frame", {
         BackgroundColor3 = theme.Elevated,
-        Size = UDim2.fromOffset(42, 22),
+        Size = trackSize,
         Position = UDim2.new(1, -14, 0.5, 0),
         AnchorPoint = Vector2.new(1, 0.5),
         Parent = row,
@@ -387,8 +444,8 @@ local function CreateToggle(parent, config)
 
     local knob = Create("Frame", {
         BackgroundColor3 = Color3.new(1,1,1),
-        Size = UDim2.fromOffset(16, 16),
-        Position = state and UDim2.fromOffset(23, 3) or UDim2.fromOffset(3, 3),
+        Size = UDim2.fromOffset(knobSize, knobSize),
+        Position = state and UDim2.fromOffset(knobOnX, 3) or UDim2.fromOffset(3, 3),
         Parent = track,
     })
     Utility.Corner(knob, 999)
@@ -396,16 +453,21 @@ local function CreateToggle(parent, config)
     local function paint()
         if state then
             Utility.Tween(track, 0.2, {BackgroundColor3 = theme.Accent})
-            Utility.Tween(knob, 0.2, {Position = UDim2.fromOffset(23, 3)})
+            Utility.Tween(knob, 0.2, {Position = UDim2.fromOffset(knobOnX, 3)})
         else
             Utility.Tween(track, 0.2, {BackgroundColor3 = theme.Elevated})
             Utility.Tween(knob, 0.2, {Position = UDim2.fromOffset(3, 3)})
         end
     end
 
+    -- click hitbox extends past the visual track so it's a real 44px target
+    -- on phones, per mobile touch-target guidelines.
     local click = Create("TextButton", {
         Text = "", BackgroundTransparency = 1,
-        Size = UDim2.new(1,0,1,0), Parent = track,
+        Size = mobile and UDim2.new(1, 24, 1, 24) or UDim2.new(1,0,1,0),
+        Position = mobile and UDim2.new(0.5, 0, 0.5, 0) or UDim2.new(0,0,0,0),
+        AnchorPoint = mobile and Vector2.new(0.5, 0.5) or Vector2.new(0,0),
+        Parent = track,
     })
 
     local Obj = {Instance = row}
@@ -428,16 +490,17 @@ local function CreateToggle(parent, config)
 end
 
 ----------------------------------------------------------------------
--- SLIDER
+-- SLIDER (taller drag bar + bigger knob on touch)
 ----------------------------------------------------------------------
 local function CreateSlider(parent, config)
     config = config or {}
     local theme = Library.CurrentTheme
+    local mobile = Device.GetClass() ~= "Desktop"
     local min = config.Min or 0
     local max = config.Max or 100
     local value = math.clamp(config.Default or min, min, max)
 
-    local row, titleLabel = BaseRow(parent, config.Title, config.Description, 62)
+    local row, titleLabel = BaseRow(parent, config.Title, config.Description, mobile and 68 or 62)
 
     local valueLabel = Create("TextLabel", {
         Text = tostring(value),
@@ -455,10 +518,11 @@ local function CreateSlider(parent, config)
         valueLabel.TextColor3 = t.Gold
     end)
 
+    local barHeight = mobile and 10 or 6
     local bar = Create("Frame", {
         BackgroundColor3 = theme.Elevated,
-        Size = UDim2.new(1, -28, 0, 6),
-        Position = UDim2.new(0, 14, 1, -18),
+        Size = UDim2.new(1, -28, 0, barHeight),
+        Position = UDim2.new(0, 14, 1, mobile and -22 or -18),
         Parent = row,
     })
     Utility.Corner(bar, 999)
@@ -475,9 +539,10 @@ local function CreateSlider(parent, config)
         grad.Color = ColorSequence.new(t.Accent, t.Gold)
     end)
 
+    local knobSize = mobile and 20 or 14
     local knob = Create("Frame", {
         BackgroundColor3 = Color3.new(1,1,1),
-        Size = UDim2.fromOffset(14, 14),
+        Size = UDim2.fromOffset(knobSize, knobSize),
         AnchorPoint = Vector2.new(0.5, 0.5),
         Position = UDim2.new(fill.Size.X.Scale, 0, 0.5, 0),
         Parent = bar,
@@ -496,7 +561,10 @@ local function CreateSlider(parent, config)
         if config.Callback then task.spawn(config.Callback, value) end
     end
 
-    bar.InputBegan:Connect(function(input)
+    -- the whole row (not just the thin bar) accepts touch-down on mobile so
+    -- fingers don't need pixel-perfect accuracy on a 6-10px bar.
+    local hit = mobile and row or bar
+    hit.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1
         or input.UserInputType == Enum.UserInputType.Touch then
             dragging = true
@@ -534,22 +602,24 @@ local function CreateSlider(parent, config)
 end
 
 ----------------------------------------------------------------------
--- DROPDOWN (FIXED - pakai overlay popup)
+-- DROPDOWN (screen-aware popup, bigger rows on touch)
 ----------------------------------------------------------------------
 local ActiveDropdownClose = nil
 
 local function CreateDropdown(parent, config)
     config = config or {}
     local theme = Library.CurrentTheme
+    local mobile = Device.GetClass() ~= "Desktop"
     local options = config.Options or {}
     local selected = config.Default or options[1]
 
-    local row = BaseRow(parent, config.Title, config.Description, 52)
+    local row = BaseRow(parent, config.Title, config.Description, mobile and 58 or 52)
 
+    local boxW = mobile and 150 or 160
     local box = Create("TextButton", {
         Text = "",
         BackgroundColor3 = theme.Elevated,
-        Size = UDim2.fromOffset(160, 30),
+        Size = UDim2.fromOffset(boxW, mobile and 36 or 30),
         Position = UDim2.new(1, -14, 0.5, 0),
         AnchorPoint = Vector2.new(1, 0.5),
         AutoButtonColor = false,
@@ -564,7 +634,7 @@ local function CreateDropdown(parent, config)
 
     local selLabel = Create("TextLabel", {
         Text = tostring(selected or "Select..."),
-        Font = Enum.Font.Gotham, TextSize = 13,
+        Font = Enum.Font.Gotham, TextSize = mobile and 14 or 13,
         TextColor3 = theme.Text, BackgroundTransparency = 1,
         TextXAlignment = Enum.TextXAlignment.Left,
         TextTruncate = Enum.TextTruncate.AtEnd,
@@ -586,7 +656,6 @@ local function CreateDropdown(parent, config)
 
     local Obj = {Instance = row}
     local popup
-    local listLayout
 
     local function closePopup()
         if popup then
@@ -606,6 +675,8 @@ local function CreateDropdown(parent, config)
         if ActiveDropdownClose == closePopup then ActiveDropdownClose = nil end
     end
 
+    local rowH = mobile and 38 or 30
+
     local function openPopup()
         if ActiveDropdownClose then ActiveDropdownClose() end
         ActiveDropdownClose = closePopup
@@ -614,17 +685,19 @@ local function CreateDropdown(parent, config)
         local pos = box.AbsolutePosition
         local size = box.AbsoluteSize
 
-        local maxHeight = 200
-        local targetH = math.min(#options * 30 + 8, maxHeight)
-        local viewport = GetViewportSize()
+        local maxHeight = mobile and 260 or 200
+        local targetH = math.min(#options * rowH + 8, maxHeight)
+        local viewport = Device.GetViewport()
         local spaceBelow = viewport.Y - (pos.Y + size.Y + 6)
         local openUpward = spaceBelow < targetH and pos.Y > targetH
         local popupY = openUpward and (pos.Y - targetH - 6) or (pos.Y + size.Y + 6)
+        -- keep popup on-screen horizontally too (important on narrow phones)
+        local popupX = math.clamp(pos.X, 6, viewport.X - size.X - 6)
 
         popup = Create("Frame", {
             BackgroundColor3 = theme.Elevated,
             BackgroundTransparency = 1,
-            Position = UDim2.fromOffset(pos.X, popupY),
+            Position = UDim2.fromOffset(popupX, popupY),
             Size = UDim2.fromOffset(size.X, 0),
             ZIndex = 999,
             Parent = overlay,
@@ -632,7 +705,6 @@ local function CreateDropdown(parent, config)
         Utility.Corner(popup, 8)
         Utility.Stroke(popup, theme.Border, 1, 0.3)
 
-        -- block click outside
         local blocker = Create("TextButton", {
             Text = "", BackgroundTransparency = 1,
             Size = UDim2.new(1000, 0, 1000, 0),
@@ -647,7 +719,7 @@ local function CreateDropdown(parent, config)
             Size = UDim2.new(1, 0, 1, 0),
             CanvasSize = UDim2.new(0,0,0,0),
             AutomaticCanvasSize = Enum.AutomaticSize.Y,
-            ScrollBarThickness = 3,
+            ScrollBarThickness = mobile and 5 or 3,
             ScrollBarImageColor3 = theme.Gold,
             ZIndex = 1000,
             Parent = popup,
@@ -660,12 +732,12 @@ local function CreateDropdown(parent, config)
             local optBtn = Create("TextButton", {
                 Text = tostring(opt),
                 Font = Enum.Font.Gotham,
-                TextSize = 13,
+                TextSize = mobile and 14 or 13,
                 TextColor3 = isSel and theme.Gold or theme.SubText,
                 TextXAlignment = Enum.TextXAlignment.Left,
                 BackgroundColor3 = isSel and theme.Accent or theme.Elevated,
                 BackgroundTransparency = isSel and 0.85 or 1,
-                Size = UDim2.new(1, 0, 0, 28),
+                Size = UDim2.new(1, 0, 0, rowH - 2),
                 AutoButtonColor = false,
                 ZIndex = 1001,
                 Parent = scroll,
@@ -673,12 +745,14 @@ local function CreateDropdown(parent, config)
             Utility.Corner(optBtn, 6)
             Utility.Padding(optBtn, 0, 10, 0, 10)
 
-            optBtn.MouseEnter:Connect(function()
-                Utility.Tween(optBtn, 0.12, {BackgroundTransparency = 0.75, BackgroundColor3 = theme.Accent})
-            end)
-            optBtn.MouseLeave:Connect(function()
-                Utility.Tween(optBtn, 0.12, {BackgroundTransparency = 1})
-            end)
+            if not mobile then
+                optBtn.MouseEnter:Connect(function()
+                    Utility.Tween(optBtn, 0.12, {BackgroundTransparency = 0.75, BackgroundColor3 = theme.Accent})
+                end)
+                optBtn.MouseLeave:Connect(function()
+                    Utility.Tween(optBtn, 0.12, {BackgroundTransparency = 1})
+                end)
+            end
 
             optBtn.MouseButton1Click:Connect(function()
                 selected = opt
@@ -689,7 +763,7 @@ local function CreateDropdown(parent, config)
             end)
         end
 
-        Utility.Tween(popup, 0.2, {Size = UDim2.fromOffset(size.X, targetH), Position = UDim2.fromOffset(pos.X, popupY)}, Enum.EasingStyle.Quart)
+        Utility.Tween(popup, 0.2, {Size = UDim2.fromOffset(size.X, targetH), Position = UDim2.fromOffset(popupX, popupY)}, Enum.EasingStyle.Quart)
         Utility.Tween(popup, 0.15, {BackgroundTransparency = 0})
         Utility.Tween(arrow, 0.2, {Rotation = openUpward and 0 or 180})
     end
@@ -719,15 +793,16 @@ end
 local function CreateMultiDropdown(parent, config)
     config = config or {}
     local theme = Library.CurrentTheme
+    local mobile = Device.GetClass() ~= "Desktop"
     local options = config.Options or {}
     local selected = {}
     for _, v in ipairs(config.Default or {}) do selected[v] = true end
 
-    local row = BaseRow(parent, config.Title, config.Description, 52)
+    local row = BaseRow(parent, config.Title, config.Description, mobile and 58 or 52)
 
     local box = Create("TextButton", {
         Text = "", BackgroundColor3 = theme.Elevated,
-        Size = UDim2.fromOffset(160, 30),
+        Size = UDim2.fromOffset(mobile and 150 or 160, mobile and 36 or 30),
         Position = UDim2.new(1, -14, 0.5, 0),
         AnchorPoint = Vector2.new(1, 0.5),
         AutoButtonColor = false, Parent = row,
@@ -747,7 +822,7 @@ local function CreateMultiDropdown(parent, config)
 
     local selLabel = Create("TextLabel", {
         Text = countText(),
-        Font = Enum.Font.Gotham, TextSize = 13, TextColor3 = theme.Text,
+        Font = Enum.Font.Gotham, TextSize = mobile and 14 or 13, TextColor3 = theme.Text,
         BackgroundTransparency = 1, TextXAlignment = Enum.TextXAlignment.Left,
         Position = UDim2.new(0, 10, 0, 0), Size = UDim2.new(1, -32, 1, 0),
         Parent = box,
@@ -785,6 +860,8 @@ local function CreateMultiDropdown(parent, config)
         if config.Callback then task.spawn(config.Callback, out) end
     end
 
+    local rowH = mobile and 38 or 30
+
     local function openPopup()
         if ActiveDropdownClose then ActiveDropdownClose() end
         ActiveDropdownClose = closePopup
@@ -793,17 +870,18 @@ local function CreateMultiDropdown(parent, config)
         local pos = box.AbsolutePosition
         local size = box.AbsoluteSize
 
-        local maxHeight = 200
-        local targetH = math.min(#options * 30 + 8, maxHeight)
-        local viewport = GetViewportSize()
+        local maxHeight = mobile and 260 or 200
+        local targetH = math.min(#options * rowH + 8, maxHeight)
+        local viewport = Device.GetViewport()
         local spaceBelow = viewport.Y - (pos.Y + size.Y + 6)
         local openUpward = spaceBelow < targetH and pos.Y > targetH
         local popupY = openUpward and (pos.Y - targetH - 6) or (pos.Y + size.Y + 6)
+        local popupX = math.clamp(pos.X, 6, viewport.X - size.X - 6)
 
         popup = Create("Frame", {
             BackgroundColor3 = theme.Elevated,
             BackgroundTransparency = 1,
-            Position = UDim2.fromOffset(pos.X, popupY),
+            Position = UDim2.fromOffset(popupX, popupY),
             Size = UDim2.fromOffset(size.X, 0),
             ZIndex = 999, Parent = overlay,
         })
@@ -823,7 +901,7 @@ local function CreateMultiDropdown(parent, config)
             Size = UDim2.new(1, 0, 1, 0),
             CanvasSize = UDim2.new(0,0,0,0),
             AutomaticCanvasSize = Enum.AutomaticSize.Y,
-            ScrollBarThickness = 3,
+            ScrollBarThickness = mobile and 5 or 3,
             ScrollBarImageColor3 = theme.Gold,
             ZIndex = 1000, Parent = popup,
         })
@@ -833,13 +911,13 @@ local function CreateMultiDropdown(parent, config)
         for _, opt in ipairs(options) do
             local optBtn = Create("TextButton", {
                 Text = "", BackgroundTransparency = 1,
-                Size = UDim2.new(1, 0, 0, 28),
+                Size = UDim2.new(1, 0, 0, rowH - 2),
                 ZIndex = 1001, Parent = scroll,
             })
 
             local check = Create("Frame", {
                 BackgroundColor3 = selected[opt] and theme.Accent or theme.Secondary,
-                Size = UDim2.fromOffset(16, 16),
+                Size = UDim2.fromOffset(mobile and 20 or 16, mobile and 20 or 16),
                 Position = UDim2.new(0, 8, 0.5, 0),
                 AnchorPoint = Vector2.new(0, 0.5),
                 ZIndex = 1002, Parent = optBtn,
@@ -848,29 +926,32 @@ local function CreateMultiDropdown(parent, config)
             Utility.Stroke(check, theme.Border, 1, 0.3)
 
             local lbl = Create("TextLabel", {
-                Text = tostring(opt), Font = Enum.Font.Gotham, TextSize = 13,
+                Text = tostring(opt), Font = Enum.Font.Gotham, TextSize = mobile and 14 or 13,
                 TextColor3 = theme.SubText, BackgroundTransparency = 1,
                 TextXAlignment = Enum.TextXAlignment.Left,
-                Position = UDim2.new(0, 32, 0, 0),
-                Size = UDim2.new(1, -36, 1, 0),
+                Position = UDim2.new(0, 34, 0, 0),
+                Size = UDim2.new(1, -38, 1, 0),
                 ZIndex = 1002, Parent = optBtn,
             })
 
-            optBtn.MouseEnter:Connect(function()
-                Utility.Tween(lbl, 0.12, {TextColor3 = theme.Text})
-            end)
-            optBtn.MouseLeave:Connect(function()
-                Utility.Tween(lbl, 0.12, {TextColor3 = theme.SubText})
-            end)
+            if not mobile then
+                optBtn.MouseEnter:Connect(function()
+                    Utility.Tween(lbl, 0.12, {TextColor3 = theme.Text})
+                end)
+                optBtn.MouseLeave:Connect(function()
+                    Utility.Tween(lbl, 0.12, {TextColor3 = theme.SubText})
+                end)
+            end
 
             optBtn.MouseButton1Click:Connect(function()
                 selected[opt] = not selected[opt] or nil
                 check.BackgroundColor3 = selected[opt] and theme.Accent or theme.Secondary
+                lbl.TextColor3 = selected[opt] and theme.Text or theme.SubText
                 fire()
             end)
         end
 
-        Utility.Tween(popup, 0.2, {Size = UDim2.fromOffset(size.X, targetH), Position = UDim2.fromOffset(pos.X, popupY)}, Enum.EasingStyle.Quart)
+        Utility.Tween(popup, 0.2, {Size = UDim2.fromOffset(size.X, targetH), Position = UDim2.fromOffset(popupX, popupY)}, Enum.EasingStyle.Quart)
         Utility.Tween(popup, 0.15, {BackgroundTransparency = 0})
         Utility.Tween(arrow, 0.2, {Rotation = openUpward and 0 or 180})
     end
@@ -896,16 +977,17 @@ local function CreateMultiDropdown(parent, config)
 end
 
 ----------------------------------------------------------------------
--- INPUT
+-- INPUT (opens the mobile keyboard cleanly; taller on touch)
 ----------------------------------------------------------------------
 local function CreateInput(parent, config)
     config = config or {}
     local theme = Library.CurrentTheme
-    local row = BaseRow(parent, config.Title, config.Description, 52)
+    local mobile = Device.GetClass() ~= "Desktop"
+    local row = BaseRow(parent, config.Title, config.Description, mobile and 58 or 52)
 
     local box = Create("Frame", {
         BackgroundColor3 = theme.Elevated,
-        Size = UDim2.fromOffset(160, 32),
+        Size = UDim2.fromOffset(mobile and 150 or 160, mobile and 38 or 32),
         Position = UDim2.new(1, -14, 0.5, 0),
         AnchorPoint = Vector2.new(1, 0.5),
         Parent = row,
@@ -920,7 +1002,7 @@ local function CreateInput(parent, config)
     local textbox = Create("TextBox", {
         Text = config.Default or "",
         PlaceholderText = config.Placeholder or "",
-        Font = Enum.Font.Gotham, TextSize = 13,
+        Font = Enum.Font.Gotham, TextSize = mobile and 14 or 13,
         TextColor3 = theme.Text,
         PlaceholderColor3 = theme.SubText,
         BackgroundTransparency = 1,
@@ -952,6 +1034,7 @@ end
 local function CreateLabel(parent, config)
     config = config or {}
     local theme = Library.CurrentTheme
+    local mobile = Device.GetClass() ~= "Desktop"
     local row = Create("Frame", {
         BackgroundColor3 = theme.Secondary,
         AutomaticSize = Enum.AutomaticSize.Y,
@@ -969,7 +1052,7 @@ local function CreateLabel(parent, config)
     local lbl = Create("TextLabel", {
         Text = config.Title or "",
         RichText = true,
-        Font = Enum.Font.GothamMedium, TextSize = 13,
+        Font = Enum.Font.GothamMedium, TextSize = mobile and 14 or 13,
         TextColor3 = theme.Text,
         BackgroundTransparency = 1,
         TextXAlignment = Enum.TextXAlignment.Left,
@@ -986,7 +1069,7 @@ local function CreateLabel(parent, config)
 end
 
 ----------------------------------------------------------------------
--- SEPARATOR (NEW)
+-- SEPARATOR
 ----------------------------------------------------------------------
 local function CreateSeparator(parent, config)
     config = config or {}
@@ -1010,23 +1093,25 @@ local function CreateSeparator(parent, config)
 end
 
 ----------------------------------------------------------------------
--- KEYBIND (NEW)
+-- KEYBIND (auto-warns / hides on mobile since there's no keyboard)
 ----------------------------------------------------------------------
 local function CreateKeybind(parent, config)
     config = config or {}
     local theme = Library.CurrentTheme
+    local mobile = Device.GetClass() ~= "Desktop"
     local row = BaseRow(parent, config.Title, config.Description)
     local current = config.Default or Enum.KeyCode.F
 
     local btn = Create("TextButton", {
-        Text = current.Name,
+        Text = mobile and "N/A" or current.Name,
         Font = Enum.Font.GothamBold, TextSize = 12,
         TextColor3 = theme.Gold,
         BackgroundColor3 = theme.Elevated,
-        Size = UDim2.fromOffset(90, 30),
+        Size = UDim2.fromOffset(90, mobile and 36 or 30),
         Position = UDim2.new(1, -14, 0.5, 0),
         AnchorPoint = Vector2.new(1, 0.5),
         AutoButtonColor = false,
+        Active = not mobile,
         Parent = row,
     })
     Utility.Corner(btn, 8)
@@ -1036,6 +1121,17 @@ local function CreateKeybind(parent, config)
         btnStroke.Color = t.Border
         btn.TextColor3 = t.Gold
     end)
+
+    if mobile then
+        -- No physical keyboard on touch devices: keep the row visible for
+        -- layout/config consistency but make it a no-op instead of a
+        -- confusing "..." state that can never be filled in.
+        local Obj = {Instance = row}
+        function Obj:Set(k) current = k end
+        function Obj:Get() return current end
+        Library.Elements[config.Title] = Obj
+        return Utility.Finalize(Obj)
+    end
 
     local listening = false
     local connection
@@ -1051,7 +1147,6 @@ local function CreateKeybind(parent, config)
             if gpe then return end
             if input.UserInputType == Enum.UserInputType.Keyboard then
                 if input.KeyCode == Enum.KeyCode.Escape then
-                    -- cancel binding, restore previous key
                     btn.Text = current.Name
                     stopListening()
                     return
@@ -1077,18 +1172,19 @@ local function CreateKeybind(parent, config)
 end
 
 ----------------------------------------------------------------------
--- COLOR PICKER (NEW)
+-- COLOR PICKER
 ----------------------------------------------------------------------
 local function CreateColorPicker(parent, config)
     config = config or {}
     local theme = Library.CurrentTheme
+    local mobile = Device.GetClass() ~= "Desktop"
     local row = BaseRow(parent, config.Title, config.Description)
-    local color = config.Default or Color3.fromRGB(58, 142, 255)
+    local color = config.Default or Color3.fromRGB(64, 150, 255)
 
     local preview = Create("TextButton", {
         Text = "",
         BackgroundColor3 = color,
-        Size = UDim2.fromOffset(50, 26),
+        Size = UDim2.fromOffset(mobile and 56 or 50, mobile and 32 or 26),
         Position = UDim2.new(1, -14, 0.5, 0),
         AnchorPoint = Vector2.new(1, 0.5),
         AutoButtonColor = false,
@@ -1114,16 +1210,18 @@ local function CreateColorPicker(parent, config)
 
         local overlay = GetOverlay()
         local pos = preview.AbsolutePosition
-        local popupH = 130
-        local viewport = GetViewportSize()
+        local popupW = mobile and 220 or 190
+        local popupH = mobile and 150 or 130
+        local viewport = Device.GetViewport()
         local spaceBelow = viewport.Y - (pos.Y + preview.AbsoluteSize.Y + 6)
         local openUpward = spaceBelow < popupH and pos.Y > popupH
         local popupY = openUpward and (pos.Y - popupH - 6) or (pos.Y + preview.AbsoluteSize.Y + 6)
+        local popupX = math.clamp(pos.X - popupW + preview.AbsoluteSize.X, 6, viewport.X - popupW - 6)
         popup = Create("Frame", {
             BackgroundColor3 = theme.Elevated,
             BackgroundTransparency = 1,
-            Position = UDim2.fromOffset(pos.X - 130, popupY),
-            Size = UDim2.fromOffset(190, popupH),
+            Position = UDim2.fromOffset(popupX, popupY),
+            Size = UDim2.fromOffset(popupW, popupH),
             ZIndex = 999, Parent = overlay,
         })
         Utility.Corner(popup, 8)
@@ -1138,7 +1236,6 @@ local function CreateColorPicker(parent, config)
         })
         blocker.MouseButton1Click:Connect(closePopup)
 
-        -- RGB sliders (mini)
         local channels = {
             {name = "R", val = math.floor(color.R * 255), col = Color3.fromRGB(255,80,80)},
             {name = "G", val = math.floor(color.G * 255), col = Color3.fromRGB(80,255,80)},
@@ -1152,11 +1249,13 @@ local function CreateColorPicker(parent, config)
             if config.Callback then task.spawn(config.Callback, color) end
         end
 
+        local barH = mobile and 26 or 20
+        local barGap = mobile and 34 or 30
         for i, ch in ipairs(channels) do
             local bar = Create("Frame", {
                 BackgroundColor3 = theme.Secondary,
-                Size = UDim2.new(1, 0, 0, 20),
-                Position = UDim2.new(0, 0, 0, (i-1)*38),
+                Size = UDim2.new(1, 0, 0, barH),
+                Position = UDim2.new(0, 0, 0, (i-1) * (barGap + 8)),
                 ZIndex = 1000, Parent = popup,
             })
             Utility.Corner(bar, 5)
@@ -1252,7 +1351,7 @@ local ElementMixins = {
 }
 
 ----------------------------------------------------------------------
--- SECTION (FIXED - sekarang punya card wrapper)
+-- SECTION
 ----------------------------------------------------------------------
 local Section = {}
 Section.__index = Section
@@ -1261,7 +1360,6 @@ local function NewSection(page, config)
     config = config or {}
     local theme = Library.CurrentTheme
 
-    -- Section wrapper card
     local wrapper = Create("Frame", {
         BackgroundTransparency = 1,
         AutomaticSize = Enum.AutomaticSize.Y,
@@ -1270,7 +1368,6 @@ local function NewSection(page, config)
     })
     Utility.ListLayout(wrapper, Enum.FillDirection.Vertical, 8)
 
-    -- Section header (title + garis gold)
     local header = Create("Frame", {
         BackgroundTransparency = 1,
         Size = UDim2.new(1, 0, 0, 24),
@@ -1298,7 +1395,6 @@ local function NewSection(page, config)
     })
     Themed(title, function(t) title.TextColor3 = t.Gold end)
 
-    -- Body container
     local body = Create("Frame", {
         BackgroundTransparency = 1,
         AutomaticSize = Enum.AutomaticSize.Y,
@@ -1316,7 +1412,7 @@ for name, fn in pairs(ElementMixins) do
 end
 
 ----------------------------------------------------------------------
--- TAB
+-- TAB (sidebar entry on PC/tablet, bottom bar icon on phone)
 ----------------------------------------------------------------------
 local Tab = {}
 Tab.__index = Tab
@@ -1324,58 +1420,103 @@ Tab.__index = Tab
 local function NewTab(window, config)
     config = config or {}
     local theme = Library.CurrentTheme
+    local mobile = window.MobileLayout
 
-    -- sidebar entry
-    local entry = Create("TextButton", {
-        Text = "",
-        BackgroundColor3 = theme.Elevated,
-        BackgroundTransparency = 1,
-        Size = UDim2.new(1, 0, 0, 38),
-        AutoButtonColor = false,
-        Parent = window.TabList,
-    })
-    Utility.Corner(entry, 8)
+    local entry, indicator, icon, label
 
-    -- tab indicator
-    local indicator = Create("Frame", {
-        BackgroundColor3 = theme.Gold,
-        Size = UDim2.new(0, 3, 0.55, 0),
-        Position = UDim2.new(0, 0, 0.5, 0),
-        AnchorPoint = Vector2.new(0, 0.5),
-        Visible = false,
-        Parent = entry,
-    })
-    Utility.Corner(indicator, 999)
-    Themed(indicator, function(t) indicator.BackgroundColor3 = t.Gold end)
+    if mobile then
+        -- Bottom bar item: icon on top, tiny label under it, square-ish
+        -- hit area sized for a thumb.
+        entry = Create("TextButton", {
+            Text = "",
+            BackgroundColor3 = theme.Elevated,
+            BackgroundTransparency = 1,
+            Size = UDim2.new(0, 64, 1, 0),
+            AutoButtonColor = false,
+            Parent = window.TabList,
+        })
+        Utility.Corner(entry, 12)
 
-    local icon = Create("TextLabel", {
-        Text = config.Icon or "●",
-        Font = Enum.Font.GothamBold, TextSize = 12,
-        TextColor3 = theme.SubText, BackgroundTransparency = 1,
-        Size = UDim2.fromOffset(20, 20),
-        Position = UDim2.new(0, 14, 0.5, 0),
-        AnchorPoint = Vector2.new(0, 0.5),
-        Parent = entry,
-    })
+        indicator = Create("Frame", {
+            BackgroundColor3 = theme.Gold,
+            Size = UDim2.new(0.5, 0, 0, 3),
+            Position = UDim2.new(0.5, 0, 0, 2),
+            AnchorPoint = Vector2.new(0.5, 0),
+            Visible = false,
+            Parent = entry,
+        })
+        Utility.Corner(indicator, 999)
+        Themed(indicator, function(t) indicator.BackgroundColor3 = t.Gold end)
 
-    local label = Create("TextLabel", {
-        Text = config.Title or "Tab",
-        Font = Enum.Font.GothamMedium, TextSize = 13,
-        TextColor3 = theme.SubText, BackgroundTransparency = 1,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        Position = UDim2.new(0, 44, 0, 0),
-        Size = UDim2.new(1, -50, 1, 0),
-        Parent = entry,
-    })
+        icon = Create("TextLabel", {
+            Text = config.Icon or "●",
+            Font = Enum.Font.GothamBold, TextSize = 16,
+            TextColor3 = theme.SubText, BackgroundTransparency = 1,
+            Size = UDim2.new(1, 0, 0, 22),
+            Position = UDim2.new(0, 0, 0, 10),
+            Parent = entry,
+        })
 
-    -- content page
+        label = Create("TextLabel", {
+            Text = config.Title or "Tab",
+            Font = Enum.Font.GothamMedium, TextSize = 10,
+            TextColor3 = theme.SubText, BackgroundTransparency = 1,
+            TextXAlignment = Enum.TextXAlignment.Center,
+            TextTruncate = Enum.TextTruncate.AtEnd,
+            Position = UDim2.new(0, 2, 0, 34),
+            Size = UDim2.new(1, -4, 0, 14),
+            Parent = entry,
+        })
+    else
+        entry = Create("TextButton", {
+            Text = "",
+            BackgroundColor3 = theme.Elevated,
+            BackgroundTransparency = 1,
+            Size = UDim2.new(1, 0, 0, 38),
+            AutoButtonColor = false,
+            Parent = window.TabList,
+        })
+        Utility.Corner(entry, 8)
+
+        indicator = Create("Frame", {
+            BackgroundColor3 = theme.Gold,
+            Size = UDim2.new(0, 3, 0.55, 0),
+            Position = UDim2.new(0, 0, 0.5, 0),
+            AnchorPoint = Vector2.new(0, 0.5),
+            Visible = false,
+            Parent = entry,
+        })
+        Utility.Corner(indicator, 999)
+        Themed(indicator, function(t) indicator.BackgroundColor3 = t.Gold end)
+
+        icon = Create("TextLabel", {
+            Text = config.Icon or "●",
+            Font = Enum.Font.GothamBold, TextSize = 12,
+            TextColor3 = theme.SubText, BackgroundTransparency = 1,
+            Size = UDim2.fromOffset(20, 20),
+            Position = UDim2.new(0, 14, 0.5, 0),
+            AnchorPoint = Vector2.new(0, 0.5),
+            Parent = entry,
+        })
+
+        label = Create("TextLabel", {
+            Text = config.Title or "Tab",
+            Font = Enum.Font.GothamMedium, TextSize = 13,
+            TextColor3 = theme.SubText, BackgroundTransparency = 1,
+            TextXAlignment = Enum.TextXAlignment.Left,
+            Position = UDim2.new(0, 44, 0, 0),
+            Size = UDim2.new(1, -50, 1, 0),
+            Parent = entry,
+        })
+    end
+
     local page = Create("ScrollingFrame", {
         BackgroundTransparency = 1,
         Visible = false,
         Size = UDim2.new(1, 0, 1, 0),
         CanvasSize = UDim2.new(0,0,0,0),
         AutomaticCanvasSize = Enum.AutomaticSize.Y,
-        ScrollBarThickness = 4,
+        ScrollBarThickness = mobile and 5 or 4,
         ScrollBarImageColor3 = theme.Gold,
         ScrollBarImageTransparency = 0.3,
         Parent = window.PageHolder,
@@ -1398,23 +1539,32 @@ local function NewTab(window, config)
         Utility.Tween(icon, 0.15, {TextColor3 = active and theme.Gold or theme.SubText})
         indicator.Visible = active
         if active then
-            indicator.Size = UDim2.new(0, 0, 0.55, 0)
-            Utility.Tween(indicator, 0.2, {Size = UDim2.new(0, 3, 0.55, 0)})
+            if mobile then
+                indicator.Size = UDim2.new(0, 0, 0, 3)
+                Utility.Tween(indicator, 0.2, {Size = UDim2.new(0.5, 0, 0, 3)})
+            else
+                indicator.Size = UDim2.new(0, 0, 0.55, 0)
+                Utility.Tween(indicator, 0.2, {Size = UDim2.new(0, 3, 0.55, 0)})
+            end
         end
     end
     self.Paint = paint
     paint(false)
 
-    entry.MouseEnter:Connect(function()
-        if window.Selected ~= config.Title then
-            Utility.Tween(entry, 0.15, {BackgroundTransparency = 0.7})
-        end
-    end)
-    entry.MouseLeave:Connect(function()
-        if window.Selected ~= config.Title then
-            Utility.Tween(entry, 0.15, {BackgroundTransparency = 1})
-        end
-    end)
+    if not mobile then
+        entry.MouseEnter:Connect(function()
+            if window.Selected ~= config.Title then
+                Utility.Tween(entry, 0.15, {BackgroundTransparency = 0.7})
+            end
+        end)
+        entry.MouseLeave:Connect(function()
+            if window.Selected ~= config.Title then
+                Utility.Tween(entry, 0.15, {BackgroundTransparency = 1})
+            end
+        end)
+    end
+
+    Utility.PressFeedback(entry, 0.05)
 
     entry.MouseButton1Click:Connect(function()
         window:SelectTab(config.Title)
@@ -1434,32 +1584,45 @@ function Tab:CreateSection(config)
 end
 
 ----------------------------------------------------------------------
--- NOTIFICATIONS
+-- NOTIFICATIONS (stacks bottom-right on PC, bottom-center on phone)
 ----------------------------------------------------------------------
 local NotifHolder
 local function EnsureNotifHolder()
     if NotifHolder and NotifHolder.Parent then return end
-    local gui = Create("ScreenGui", {Name = "CyrusNotify", ResetOnSpawn = false, DisplayOrder = 1000, Parent = ParentGui})
-    NotifHolder = Create("Frame", {
-        BackgroundTransparency = 1,
-        AnchorPoint = Vector2.new(1, 1),
-        Position = UDim2.new(1, -20, 1, -20),
-        Size = UDim2.fromOffset(320, 500),
-        Parent = gui,
-    })
-    Utility.ListLayout(NotifHolder, Enum.FillDirection.Vertical, 10, Enum.HorizontalAlignment.Right, Enum.VerticalAlignment.Bottom)
+    local mobile = Device.GetClass() == "Mobile"
+    local gui = Create("ScreenGui", {Name = "CyrusNotify", ResetOnSpawn = false, DisplayOrder = 1000, IgnoreGuiInset = true, Parent = ParentGui})
+    if mobile then
+        NotifHolder = Create("Frame", {
+            BackgroundTransparency = 1,
+            AnchorPoint = Vector2.new(0.5, 1),
+            Position = UDim2.new(0.5, 0, 1, -16),
+            Size = UDim2.new(1, -24, 0, 400),
+            Parent = gui,
+        })
+        Utility.ListLayout(NotifHolder, Enum.FillDirection.Vertical, 8, Enum.HorizontalAlignment.Center, Enum.VerticalAlignment.Bottom)
+    else
+        NotifHolder = Create("Frame", {
+            BackgroundTransparency = 1,
+            AnchorPoint = Vector2.new(1, 1),
+            Position = UDim2.new(1, -20, 1, -20),
+            Size = UDim2.fromOffset(320, 500),
+            Parent = gui,
+        })
+        Utility.ListLayout(NotifHolder, Enum.FillDirection.Vertical, 10, Enum.HorizontalAlignment.Right, Enum.VerticalAlignment.Bottom)
+    end
 end
 
 function Library:Notify(config)
     config = config or {}
     EnsureNotifHolder()
     local theme = self.CurrentTheme
+    local mobile = Device.GetClass() == "Mobile"
 
     local card = Create("Frame", {
         BackgroundColor3 = theme.Secondary,
         Size = UDim2.new(1, 0, 0, 0),
         AutomaticSize = Enum.AutomaticSize.Y,
-        Position = UDim2.new(1, 60, 0, 0),
+        Position = mobile and UDim2.new(0, 0, 1, 60) or UDim2.new(1, 60, 0, 0),
         Parent = NotifHolder,
     })
     Utility.Corner(card, 10)
@@ -1470,7 +1633,6 @@ function Library:Notify(config)
     Utility.Stroke(card, strokeColor, 1, 0.3)
     Utility.Padding(card, 12, 12, 14, 12)
 
-    -- accent bar left
     local accent = Create("Frame", {
         BackgroundColor3 = strokeColor,
         Size = UDim2.new(0, 3, 1, -24),
@@ -1514,7 +1676,7 @@ function Library:Notify(config)
     Utility.Tween(bar, duration, {Size = UDim2.new(0, 0, 0, 2)}, Enum.EasingStyle.Linear)
 
     task.delay(duration, function()
-        Utility.Tween(card, 0.3, {Position = UDim2.new(1, 60, 0, 0)})
+        Utility.Tween(card, 0.3, {Position = mobile and UDim2.new(0, 0, 1, 60) or UDim2.new(1, 60, 0, 0)})
         task.delay(0.3, function() card:Destroy() end)
     end)
 end
@@ -1563,15 +1725,46 @@ function Library:CreateWindow(config)
     self.CurrentTheme = theme
     self.CurrentThemeName = themeName
 
-    local size = config.Size or UDim2.fromOffset(640, 480)
+    local deviceClass = Device.GetClass()
+    local mobileLayout = (config.MobileLayout ~= nil) and config.MobileLayout or (deviceClass ~= "Desktop")
+    local viewport = Device.GetViewport()
+
+    -- Adaptive default size: percentage of the screen on touch devices
+    -- (near-fullscreen on phones, comfortably large on tablets), a fixed
+    -- pixel size on desktop like before (unless the user overrides it).
+    local size
+    if config.Size then
+        size = config.Size
+    elseif deviceClass == "Mobile" then
+        size = UDim2.fromScale(0.94, 0.86)
+    elseif deviceClass == "Tablet" then
+        size = UDim2.fromScale(0.82, 0.8)
+    else
+        size = UDim2.fromOffset(640, 480)
+    end
 
     local screenGui = Create("ScreenGui", {
         Name = "CyrusLib", ResetOnSpawn = false,
         ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+        IgnoreGuiInset = mobileLayout,
         Parent = ParentGui,
     })
 
-    -- window shadow
+    -- ambient glow behind the window for a more modern "floating glass" look
+    local glow = Create("ImageLabel", {
+        BackgroundTransparency = 1,
+        Image = "rbxassetid://5028857084", -- soft round glow
+        ImageColor3 = theme.Accent,
+        ImageTransparency = 0.72,
+        ScaleType = Enum.ScaleType.Slice,
+        SliceCenter = Rect.new(100, 100, 100, 100),
+        Size = UDim2.new(1, 120, 1, 120),
+        Position = UDim2.new(0.5, 0, 0.5, 0),
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        ZIndex = -1,
+        Parent = screenGui,
+    })
+
     local shadow = Create("Frame", {
         BackgroundColor3 = Color3.new(0,0,0),
         BackgroundTransparency = 0.5,
@@ -1591,20 +1784,34 @@ function Library:CreateWindow(config)
         ClipsDescendants = true,
         Parent = screenGui,
     })
-    Utility.Corner(main, 14)
+    Utility.Corner(main, mobileLayout and 20 or 14)
     local mainStroke = Utility.Stroke(main, theme.Gold, 1.5, 0.25)
     Themed(main, function(t)
         main.BackgroundColor3 = t.Background
         mainStroke.Color = t.Gold
     end)
+    -- subtle top-to-bottom gradient for depth (glass feel)
+    Utility.Gradient(main, ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(255,255,255)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(200,200,200)),
+    }, 90, NumberSequence.new{
+        NumberSequenceKeypoint.new(0, 0.94),
+        NumberSequenceKeypoint.new(1, 0.98),
+    })
 
-    -- TOPBAR
+    -- live UIScale: recomputed whenever the viewport size changes so the
+    -- whole window (fonts included, via TextScaled where used) rescales
+    -- instead of clipping or looking tiny/huge after a resize.
+    local uiScale = Create("UIScale", {Scale = 1, Parent = main})
+    Create("UIScale", {Scale = 1, Parent = shadow})
+
+    local topbarH = mobileLayout and 58 or 54
     local topbar = Create("Frame", {
         BackgroundColor3 = theme.Secondary,
-        Size = UDim2.new(1, 0, 0, 54),
+        Size = UDim2.new(1, 0, 0, topbarH),
         Parent = main,
     })
-    Utility.Corner(topbar, 14)
+    Utility.Corner(topbar, mobileLayout and 20 or 14)
     Create("Frame", {
         BackgroundColor3 = theme.Secondary,
         Size = UDim2.new(1, 0, 0, 14),
@@ -1612,158 +1819,242 @@ function Library:CreateWindow(config)
         Parent = topbar,
     })
     Themed(topbar, function(t) topbar.BackgroundColor3 = t.Secondary end)
+    -- thin gold->blue gradient line under the topbar for a modern accent
+    local topbarLine = Create("Frame", {
+        BackgroundColor3 = theme.Gold,
+        Size = UDim2.new(1, 0, 0, 2),
+        Position = UDim2.new(0, 0, 1, -1),
+        Parent = topbar,
+    })
+    local topbarLineGrad = Utility.Gradient(topbarLine, ColorSequence.new(theme.Gold, theme.Accent))
+    Themed(topbarLine, function(t) topbarLineGrad.Color = ColorSequence.new(t.Gold, t.Accent) end)
 
     local titleLabel = Create("TextLabel", {
         Text = config.Title or "CyrusLib",
-        Font = Enum.Font.GothamBlack, TextSize = 18, TextColor3 = theme.Gold,
+        Font = Enum.Font.GothamBlack, TextSize = mobileLayout and 19 or 18, TextColor3 = theme.Gold,
         BackgroundTransparency = 1, TextXAlignment = Enum.TextXAlignment.Left,
-        Position = UDim2.new(0, 20, 0, 8), Size = UDim2.new(1, -160, 0, 22),
+        Position = UDim2.new(0, 20, 0, mobileLayout and 10 or 8), Size = UDim2.new(1, -170, 0, 22),
         Parent = topbar,
     })
     Themed(titleLabel, function(t) titleLabel.TextColor3 = t.Gold end)
-    Create("TextLabel", {
+    local subtitleLabel = Create("TextLabel", {
         Text = config.Subtitle or "v" .. Library.Version,
         Font = Enum.Font.Gotham, TextSize = 11, TextColor3 = theme.SubText,
         BackgroundTransparency = 1, TextXAlignment = Enum.TextXAlignment.Left,
-        Position = UDim2.new(0, 20, 0, 30), Size = UDim2.new(1, -160, 0, 16),
+        Position = UDim2.new(0, 20, 0, mobileLayout and 32 or 30), Size = UDim2.new(1, -170, 0, 16),
         Parent = topbar,
     })
 
-    -- close / minimize buttons
+    local btnSize = mobileLayout and 34 or 28
     local closeBtn = Create("TextButton", {
         Text = "✕", Font = Enum.Font.GothamBold, TextSize = 14, TextColor3 = theme.SubText,
-        BackgroundColor3 = theme.Elevated, Size = UDim2.fromOffset(28, 28),
-        Position = UDim2.new(1, -18, 0, 13), AnchorPoint = Vector2.new(1, 0),
+        BackgroundColor3 = theme.Elevated, Size = UDim2.fromOffset(btnSize, btnSize),
+        Position = UDim2.new(1, -18, 0, mobileLayout and 12 or 13), AnchorPoint = Vector2.new(1, 0),
         AutoButtonColor = false, Parent = topbar,
     })
     Utility.Corner(closeBtn, 7)
     Themed(closeBtn, function(t) closeBtn.BackgroundColor3 = t.Elevated end)
-    closeBtn.MouseEnter:Connect(function()
-        Utility.Tween(closeBtn, 0.15, {BackgroundColor3 = theme.Error, TextColor3 = Color3.new(1,1,1)})
-    end)
-    closeBtn.MouseLeave:Connect(function()
-        Utility.Tween(closeBtn, 0.15, {BackgroundColor3 = theme.Elevated, TextColor3 = theme.SubText})
-    end)
+    Utility.PressFeedback(closeBtn, 0.08)
+    if not mobileLayout then
+        closeBtn.MouseEnter:Connect(function()
+            Utility.Tween(closeBtn, 0.15, {BackgroundColor3 = theme.Error, TextColor3 = Color3.new(1,1,1)})
+        end)
+        closeBtn.MouseLeave:Connect(function()
+            Utility.Tween(closeBtn, 0.15, {BackgroundColor3 = theme.Elevated, TextColor3 = theme.SubText})
+        end)
+    end
 
     local minBtn = Create("TextButton", {
         Text = "—", Font = Enum.Font.GothamBold, TextSize = 14, TextColor3 = theme.SubText,
-        BackgroundColor3 = theme.Elevated, Size = UDim2.fromOffset(28, 28),
-        Position = UDim2.new(1, -52, 0, 13), AnchorPoint = Vector2.new(1, 0),
+        BackgroundColor3 = theme.Elevated, Size = UDim2.fromOffset(btnSize, btnSize),
+        Position = UDim2.new(1, -18 - btnSize - 8, 0, mobileLayout and 12 or 13), AnchorPoint = Vector2.new(1, 0),
         AutoButtonColor = false, Parent = topbar,
     })
     Utility.Corner(minBtn, 7)
     Themed(minBtn, function(t) minBtn.BackgroundColor3 = t.Elevated end)
-    minBtn.MouseEnter:Connect(function()
-        Utility.Tween(minBtn, 0.15, {BackgroundColor3 = theme.Accent, TextColor3 = Color3.new(1,1,1)})
-    end)
-    minBtn.MouseLeave:Connect(function()
-        Utility.Tween(minBtn, 0.15, {BackgroundColor3 = theme.Elevated, TextColor3 = theme.SubText})
-    end)
+    Utility.PressFeedback(minBtn, 0.08)
+    if not mobileLayout then
+        minBtn.MouseEnter:Connect(function()
+            Utility.Tween(minBtn, 0.15, {BackgroundColor3 = theme.Accent, TextColor3 = Color3.new(1,1,1)})
+        end)
+        minBtn.MouseLeave:Connect(function()
+            Utility.Tween(minBtn, 0.15, {BackgroundColor3 = theme.Elevated, TextColor3 = theme.SubText})
+        end)
+    end
 
     Utility.MakeDraggable(main, topbar)
 
-    -- SIDEBAR
-    local sidebar = Create("Frame", {
-        BackgroundColor3 = theme.Secondary,
-        BackgroundTransparency = 1,
-        Size = UDim2.new(0, 160, 1, -66),
-        Position = UDim2.new(0, 0, 0, 54),
-        Parent = main,
-    })
-    Utility.Padding(sidebar, 8, 8, 8, 8)
+    -- SIDEBAR (desktop/tablet) or BOTTOM BAR (mobile)
+    local sidebar, tabList, pageHolder
 
-    local tabList = Create("ScrollingFrame", {
-        BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, 0),
-        CanvasSize = UDim2.new(0,0,0,0),
-        AutomaticCanvasSize = Enum.AutomaticSize.Y,
-        ScrollBarThickness = 2, ScrollBarImageColor3 = theme.Gold,
-        Parent = sidebar,
-    })
-    Utility.ListLayout(tabList, Enum.FillDirection.Vertical, 4)
+    if mobileLayout then
+        local bottomH = 64
+        sidebar = Create("Frame", {
+            BackgroundColor3 = theme.Secondary,
+            Size = UDim2.new(1, 0, 0, bottomH),
+            Position = UDim2.new(0, 0, 1, 0),
+            AnchorPoint = Vector2.new(0, 1),
+            Parent = main,
+        })
+        Utility.Corner(sidebar, 20)
+        Create("Frame", {
+            BackgroundColor3 = theme.Secondary,
+            Size = UDim2.new(1, 0, 0, 20),
+            Parent = sidebar,
+        })
+        Themed(sidebar, function(t) sidebar.BackgroundColor3 = t.Secondary end)
 
-    -- CONTENT AREA
-    local pageHolder = Create("Frame", {
-        BackgroundColor3 = theme.Elevated,
-        Size = UDim2.new(1, -180, 1, -78),
-        Position = UDim2.new(0, 172, 0, 66),
-        Parent = main,
-    })
-    Utility.Corner(pageHolder, 10)
-    local phStroke = Utility.Stroke(pageHolder, theme.Border, 1, 0.7)
-    Themed(pageHolder, function(t)
-        pageHolder.BackgroundColor3 = t.Elevated
-        phStroke.Color = t.Border
-    end)
+        tabList = Create("ScrollingFrame", {
+            BackgroundTransparency = 1, Size = UDim2.new(1, -16, 1, 0),
+            Position = UDim2.new(0, 8, 0, 0),
+            CanvasSize = UDim2.new(0,0,0,0),
+            AutomaticCanvasSize = Enum.AutomaticSize.X,
+            ScrollingDirection = Enum.ScrollingDirection.X,
+            ScrollBarThickness = 0,
+            Parent = sidebar,
+        })
+        Utility.ListLayout(tabList, Enum.FillDirection.Horizontal, 6, Enum.HorizontalAlignment.Center, Enum.VerticalAlignment.Center)
+
+        pageHolder = Create("Frame", {
+            BackgroundColor3 = theme.Elevated,
+            Size = UDim2.new(1, -20, 1, -topbarH - bottomH - 20),
+            Position = UDim2.new(0, 10, 0, topbarH + 10),
+            Parent = main,
+        })
+        Utility.Corner(pageHolder, 14)
+        local phStroke = Utility.Stroke(pageHolder, theme.Border, 1, 0.7)
+        Themed(pageHolder, function(t)
+            pageHolder.BackgroundColor3 = t.Elevated
+            phStroke.Color = t.Border
+        end)
+    else
+        sidebar = Create("Frame", {
+            BackgroundColor3 = theme.Secondary,
+            BackgroundTransparency = 1,
+            Size = UDim2.new(0, 160, 1, -66),
+            Position = UDim2.new(0, 0, 0, 54),
+            Parent = main,
+        })
+        Utility.Padding(sidebar, 8, 8, 8, 8)
+
+        tabList = Create("ScrollingFrame", {
+            BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, 0),
+            CanvasSize = UDim2.new(0,0,0,0),
+            AutomaticCanvasSize = Enum.AutomaticSize.Y,
+            ScrollBarThickness = 2, ScrollBarImageColor3 = theme.Gold,
+            Parent = sidebar,
+        })
+        Utility.ListLayout(tabList, Enum.FillDirection.Vertical, 4)
+
+        pageHolder = Create("Frame", {
+            BackgroundColor3 = theme.Elevated,
+            Size = UDim2.new(1, -180, 1, -78),
+            Position = UDim2.new(0, 172, 0, 66),
+            Parent = main,
+        })
+        Utility.Corner(pageHolder, 10)
+        local phStroke = Utility.Stroke(pageHolder, theme.Border, 1, 0.7)
+        Themed(pageHolder, function(t)
+            pageHolder.BackgroundColor3 = t.Elevated
+            phStroke.Color = t.Border
+        end)
+    end
 
     -- FLOATING BUTTON (minimized)
+    local floatSize = mobileLayout and 58 or 50
     local floatBtn = Create("ImageButton", {
         BackgroundColor3 = theme.Gold, Visible = false,
-        Size = UDim2.fromOffset(50, 50),
-        Position = UDim2.new(0.5, -25, 0.85, 0),
+        Size = UDim2.fromOffset(floatSize, floatSize),
+        Position = UDim2.new(0.5, -floatSize/2, mobileLayout and 0.88 or 0.85, 0),
         AutoButtonColor = false, Parent = screenGui,
     })
     Utility.Corner(floatBtn, 999)
     Utility.Stroke(floatBtn, theme.Accent, 2)
     Create("TextLabel", {
-        Text = "☰", Font = Enum.Font.GothamBold, TextSize = 20,
+        Text = "☰", Font = Enum.Font.GothamBold, TextSize = mobileLayout and 22 or 20,
         TextColor3 = Color3.fromRGB(15,15,20), BackgroundTransparency = 1,
         Size = UDim2.new(1,0,1,0), Parent = floatBtn,
     })
     Utility.MakeDraggable(floatBtn)
+    Utility.PressFeedback(floatBtn, 0.08)
 
-    -- resize handle (bottom-right)
-    local resizeHandle = Create("TextButton", {
-        Text = "", BackgroundTransparency = 1,
-        Size = UDim2.fromOffset(16, 16),
-        Position = UDim2.new(1, -6, 1, -6),
-        AnchorPoint = Vector2.new(1, 1),
-        Parent = main,
-    })
-    local resizeGrip = Create("Frame", {
-        BackgroundColor3 = theme.Gold,
-        BackgroundTransparency = 0.3,
-        Size = UDim2.fromOffset(10, 10),
-        Position = UDim2.new(1, -6, 1, -6),
-        AnchorPoint = Vector2.new(1, 1),
-        Parent = main,
-    })
-    Utility.Corner(resizeGrip, 3)
+    -- resize handle: hidden on mobile (window is fullscreen-ish, resizing
+    -- by dragging a tiny corner doesn't make sense on a phone).
+    local resizeHandle, resizeGrip
+    if not mobileLayout then
+        resizeHandle = Create("TextButton", {
+            Text = "", BackgroundTransparency = 1,
+            Size = UDim2.fromOffset(16, 16),
+            Position = UDim2.new(1, -6, 1, -6),
+            AnchorPoint = Vector2.new(1, 1),
+            Parent = main,
+        })
+        resizeGrip = Create("Frame", {
+            BackgroundColor3 = theme.Gold,
+            BackgroundTransparency = 0.3,
+            Size = UDim2.fromOffset(10, 10),
+            Position = UDim2.new(1, -6, 1, -6),
+            AnchorPoint = Vector2.new(1, 1),
+            Parent = main,
+        })
+        Utility.Corner(resizeGrip, 3)
+    end
 
     local self = setmetatable({
-        ScreenGui = screenGui, Main = main, Shadow = shadow,
-        TabList = tabList, PageHolder = pageHolder,
+        ScreenGui = screenGui, Main = main, Shadow = shadow, Glow = glow,
+        TabList = tabList, PageHolder = pageHolder, Sidebar = sidebar,
         Tabs = {}, FirstTab = nil, Minimized = false,
         TargetSize = size, FloatBtn = floatBtn, Topbar = topbar,
-        TitleLabel = titleLabel,
+        TitleLabel = titleLabel, SubtitleLabel = subtitleLabel,
+        MobileLayout = mobileLayout, UIScale = uiScale,
     }, Window)
 
-    -- resize logic
-    local resizing, resizeStart, startSize
-    resizeHandle.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1
-        or input.UserInputType == Enum.UserInputType.Touch then
-            resizing = true
-            resizeStart = input.Position
-            startSize = main.AbsoluteSize
+    if resizeHandle then
+        local resizing, resizeStart, startSize
+        resizeHandle.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1
+            or input.UserInputType == Enum.UserInputType.Touch then
+                resizing = true
+                resizeStart = input.Position
+                startSize = main.AbsoluteSize
+            end
+        end)
+        UserInputService.InputChanged:Connect(function(input)
+            if resizing and (input.UserInputType == Enum.UserInputType.MouseMovement
+            or input.UserInputType == Enum.UserInputType.Touch) then
+                local delta = input.Position - resizeStart
+                local newW = math.max(480, startSize.X + delta.X)
+                local newH = math.max(320, startSize.Y + delta.Y)
+                main.Size = UDim2.fromOffset(newW, newH)
+                shadow.Size = UDim2.fromOffset(newW, newH)
+                self.TargetSize = UDim2.fromOffset(newW, newH)
+            end
+        end)
+        UserInputService.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1
+            or input.UserInputType == Enum.UserInputType.Touch then
+                resizing = false
+            end
+        end)
+    end
+
+    -- keep the window sized correctly if the viewport changes (phone
+    -- rotation, PC window resize, changing resolution) by re-deriving a
+    -- gentle UIScale factor rather than fighting the layout engine.
+    local baseViewport = Device.GetViewport()
+    local function onViewportChanged()
+        local vp = Device.GetViewport()
+        if mobileLayout then
+            -- scale-based sizes already adapt automatically; just nudge
+            -- font/UI scale slightly for very small/large phones.
+            local scale = math.clamp(vp.X / baseViewport.X, 0.85, 1.15)
+            Utility.Tween(uiScale, 0.25, {Scale = scale})
+        else
+            local scale = math.clamp(math.min(vp.X / 1440, vp.Y / 900), 0.75, 1.15)
+            Utility.Tween(uiScale, 0.25, {Scale = scale})
         end
-    end)
-    UserInputService.InputChanged:Connect(function(input)
-        if resizing and (input.UserInputType == Enum.UserInputType.MouseMovement
-        or input.UserInputType == Enum.UserInputType.Touch) then
-            local delta = input.Position - resizeStart
-            local newW = math.max(480, startSize.X + delta.X)
-            local newH = math.max(320, startSize.Y + delta.Y)
-            main.Size = UDim2.fromOffset(newW, newH)
-            shadow.Size = UDim2.fromOffset(newW, newH)
-            self.TargetSize = UDim2.fromOffset(newW, newH)
-        end
-    end)
-    UserInputService.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1
-        or input.UserInputType == Enum.UserInputType.Touch then
-            resizing = false
-        end
-    end)
+    end
+    workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(onViewportChanged)
 
     -- open animation
     Utility.Tween(main, 0.4, {Size = size}, Enum.EasingStyle.Back)
@@ -1794,6 +2085,11 @@ function Window:SelectTab(title)
     end
     self.Selected = title
 end
+
+function Window:SetTitle(text)
+    self.TitleLabel.Text = text
+end
+Window.Rename = Window.SetTitle
 
 function Window:Toggle()
     local visible = self.Main.Visible
@@ -1845,6 +2141,9 @@ end
 ----------------------------------------------------------------------
 -- LIBRARY EXTRAS
 ----------------------------------------------------------------------
+-- Expose the device helper so scripts using the library can branch on it too.
+Library.Device = Device
+
 function Library:Destroy()
     for _, w in ipairs(self.Windows or {}) do
         pcall(function() w:Destroy() end)
