@@ -1,1 +1,345 @@
-loadstring(game:HttpGet("https://flowauth.net/v1/loaders/1d4c79c47bc25733204eec547a6e94e8.lua"))()
+-- UI Patch Notification Multi-Language
+-- Letakkan di StarterGui sebagai LocalScript
+
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- ============================
+-- KONFIGURASI BAHASA
+-- ============================
+local Translations = {
+    ["ID"] = { -- Indonesia
+        title = "⚠️ SCRIPT SEDANG DIPERBAIKI ⚠️",
+        message = "MAAF SCRIPT SEDANG DIPERBAIKI (PATCH)\nSILAKAN KEMBALI LAGI",
+        button = "TUTUP",
+        footer = "Roblox Support Executor"
+    },
+    ["EN"] = { -- English
+        title = "⚠️ SCRIPT IS BEING FIXED ⚠️",
+        message = "SORRY, THE SCRIPT IS UNDER MAINTENANCE (PATCH)\nPLEASE COME BACK LATER",
+        button = "CLOSE",
+        footer = "Roblox Support Executor"
+    },
+    ["ES"] = { -- Spanish
+        title = "⚠️ SCRIPT EN REPARACIÓN ⚠️",
+        message = "LO SENTIMOS, EL SCRIPT ESTÁ EN MANTENIMIENTO (PARCHE)\nPOR FAVOR VUELVE MÁS TARDE",
+        button = "CERRAR",
+        footer = "Roblox Support Executor"
+    },
+    ["PT"] = { -- Portuguese
+        title = "⚠️ SCRIPT SENDO CORRIGIDO ⚠️",
+        message = "DESCULPE, O SCRIPT ESTÁ EM MANUTENÇÃO (PATCH)\nPOR FAVOR, VOLTE MAIS TARDE",
+        button = "FECHAR",
+        footer = "Roblox Support Executor"
+    },
+    ["FR"] = { -- French
+        title = "⚠️ SCRIPT EN COURS DE CORRECTION ⚠️",
+        message = "DÉSOLÉ, LE SCRIPT EST EN MAINTENANCE (PATCH)\nVEUILLEZ REVENIR PLUS TARD",
+        button = "FERMER",
+        footer = "Roblox Support Executor"
+    },
+    ["DE"] = { -- German
+        title = "⚠️ SCRIPT WIRD REPARIERT ⚠️",
+        message = "ENTSCHULDIGUNG, DAS SCRIPT WIRD GEWARTET (PATCH)\nBITTE KOMMEN SIE SPÄTER ZURÜCK",
+        button = "SCHLIESSEN",
+        footer = "Roblox Support Executor"
+    },
+    ["RU"] = { -- Russian
+        title = "⚠️ СКРИПТ ИСПРАВЛЯЕТСЯ ⚠️",
+        message = "ИЗВИНИТЕ, СКРИПТ НА ОБСЛУЖИВАНИИ (ПАТЧ)\nПОЖАЛУЙСТА, ВЕРНИТЕСЬ ПОЗЖЕ",
+        button = "ЗАКРЫТЬ",
+        footer = "Roblox Support Executor"
+    },
+    ["JP"] = { -- Japanese
+        title = "⚠️ スクリプト修正中 ⚠️",
+        message = "申し訳ありませんが、スクリプトはメンテナンス中です（パッチ）\n後でもう一度お越しください",
+        button = "閉じる",
+        footer = "Roblox Support Executor"
+    },
+    ["KR"] = { -- Korean
+        title = "⚠️ 스크립트 수정 중 ⚠️",
+        message = "죄송합니다. 스크립트가 점검 중입니다 (패치)\n나중에 다시 방문해 주세요",
+        button = "닫기",
+        footer = "Roblox Support Executor"
+    },
+    ["CN"] = { -- Chinese
+        title = "⚠️ 脚本正在修复中 ⚠️",
+        message = "抱歉，脚本正在维护中（补丁）\n请稍后再来",
+        button = "关闭",
+        footer = "Roblox Support Executor"
+    },
+    ["AR"] = { -- Arabic
+        title = "⚠️ السكريبت قيد الإصلاح ⚠️",
+        message = "عذرًا، السكريبت تحت الصيانة (تصحيح)\nيرجى العودة لاحقًا",
+        button = "إغلاق",
+        footer = "Roblox Support Executor"
+    },
+    ["TH"] = { -- Thai
+        title = "⚠️ สคริปต์กำลังได้รับการแก้ไข ⚠️",
+        message = "ขออภัย สคริปต์อยู่ระหว่างการบำรุงรักษา (แพทช์)\nกรุณากลับมาใหม่ภายหลัง",
+        button = "ปิด",
+        footer = "Roblox Support Executor"
+    },
+    ["VN"] = { -- Vietnamese
+        title = "⚠️ SCRIPT ĐANG ĐƯỢC SỬA ⚠️",
+        message = "XIN LỖI, SCRIPT ĐANG BẢO TRÌ (PATCH)\nVUI LÒNG QUAY LẠI SAU",
+        button = "ĐÓNG",
+        footer = "Roblox Support Executor"
+    }
+}
+
+-- ============================
+-- DETEKSI BAHASA OTOMATIS
+-- ============================
+local function getPlayerLanguage()
+    -- Coba ambil dari locale Roblox
+    local success, locale = pcall(function()
+        return UserInputService:GetPlatform() and player.LocaleId
+    end)
+    
+    if success and locale then
+        local code = string.upper(string.sub(locale, 1, 2))
+        if Translations[code] then
+            return code
+        end
+    end
+    
+    -- Fallback: coba cek bahasa dari game
+    return "ID" -- default Indonesia
+end
+
+local currentLang = getPlayerLanguage()
+local T = Translations[currentLang] or Translations["ID"]
+
+-- ============================
+-- MEMBUAT UI
+-- ============================
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "PatchNotification"
+screenGui.ResetOnSpawn = false
+screenGui.IgnoreGuiInset = true
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+screenGui.DisplayOrder = 999
+screenGui.Parent = playerGui
+
+-- Background overlay (gelap)
+local overlay = Instance.new("Frame")
+overlay.Name = "Overlay"
+overlay.Size = UDim2.new(1, 0, 1, 0)
+overlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+overlay.BackgroundTransparency = 1
+overlay.BorderSizePixel = 0
+overlay.Parent = screenGui
+
+-- Main Frame
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 500, 0, 320)
+mainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+mainFrame.BorderSizePixel = 0
+mainFrame.ClipsDescendants = false
+mainFrame.Parent = screenGui
+
+local mainCorner = Instance.new("UICorner")
+mainCorner.CornerRadius = UDim.new(0, 12)
+mainCorner.Parent = mainFrame
+
+local mainStroke = Instance.new("UIStroke")
+mainStroke.Color = Color3.fromRGB(255, 60, 60)
+mainStroke.Thickness = 2
+mainStroke.Transparency = 0.2
+mainStroke.Parent = mainFrame
+
+-- Gradient background
+local gradient = Instance.new("UIGradient")
+gradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(25, 25, 30)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 20, 20))
+})
+gradient.Rotation = 45
+gradient.Parent = mainFrame
+
+-- Top bar (header merah)
+local topBar = Instance.new("Frame")
+topBar.Name = "TopBar"
+topBar.Size = UDim2.new(1, 0, 0, 55)
+topBar.BackgroundColor3 = Color3.fromRGB(180, 30, 30)
+topBar.BorderSizePixel = 0
+topBar.Parent = mainFrame
+
+local topCorner = Instance.new("UICorner")
+topCorner.CornerRadius = UDim.new(0, 12)
+topCorner.Parent = topBar
+
+local topFix = Instance.new("Frame")
+topFix.Size = UDim2.new(1, 0, 0, 12)
+topFix.Position = UDim2.new(0, 0, 1, -12)
+topFix.BackgroundColor3 = Color3.fromRGB(180, 30, 30)
+topFix.BorderSizePixel = 0
+topFix.Parent = topBar
+
+-- Title
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Name = "Title"
+titleLabel.Size = UDim2.new(1, -20, 1, 0)
+titleLabel.Position = UDim2.new(0, 10, 0, 0)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Text = T.title
+titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+titleLabel.TextScaled = true
+titleLabel.Font = Enum.Font.GothamBold
+titleLabel.TextWrapped = true
+titleLabel.Parent = topBar
+
+local titleSize = Instance.new("UITextSizeConstraint")
+titleSize.MaxTextSize = 22
+titleSize.MinTextSize = 12
+titleSize.Parent = titleLabel
+
+-- Icon peringatan
+local warningIcon = Instance.new("TextLabel")
+warningIcon.Name = "WarningIcon"
+warningIcon.Size = UDim2.new(0, 60, 0, 60)
+warningIcon.Position = UDim2.new(0.5, 0, 0, 75)
+warningIcon.AnchorPoint = Vector2.new(0.5, 0)
+warningIcon.BackgroundTransparency = 1
+warningIcon.Text = "⚠️"
+warningIcon.TextScaled = true
+warningIcon.Font = Enum.Font.GothamBold
+warningIcon.Parent = mainFrame
+
+local iconSize = Instance.new("UITextSizeConstraint")
+iconSize.MaxTextSize = 50
+iconSize.Parent = warningIcon
+
+-- Message
+local messageLabel = Instance.new("TextLabel")
+messageLabel.Name = "Message"
+messageLabel.Size = UDim2.new(1, -40, 0, 90)
+messageLabel.Position = UDim2.new(0, 20, 0, 145)
+messageLabel.BackgroundTransparency = 1
+messageLabel.Text = T.message
+messageLabel.TextColor3 = Color3.fromRGB(230, 230, 230)
+messageLabel.TextScaled = true
+messageLabel.Font = Enum.Font.Gotham
+messageLabel.TextWrapped = true
+messageLabel.Parent = mainFrame
+
+local msgSize = Instance.new("UITextSizeConstraint")
+msgSize.MaxTextSize = 18
+msgSize.MinTextSize = 10
+msgSize.Parent = messageLabel
+
+-- Button Close
+local closeBtn = Instance.new("TextButton")
+closeBtn.Name = "CloseButton"
+closeBtn.Size = UDim2.new(0, 200, 0, 45)
+closeBtn.Position = UDim2.new(0.5, 0, 1, -65)
+closeBtn.AnchorPoint = Vector2.new(0.5, 0)
+closeBtn.BackgroundColor3 = Color3.fromRGB(200, 40, 40)
+closeBtn.BorderSizePixel = 0
+closeBtn.Text = T.button
+closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.TextSize = 16
+closeBtn.AutoButtonColor = false
+closeBtn.Parent = mainFrame
+
+local btnCorner = Instance.new("UICorner")
+btnCorner.CornerRadius = UDim.new(0, 8)
+btnCorner.Parent = closeBtn
+
+local btnStroke = Instance.new("UIStroke")
+btnStroke.Color = Color3.fromRGB(255, 100, 100)
+btnStroke.Thickness = 1
+btnStroke.Transparency = 0.3
+btnStroke.Parent = closeBtn
+
+-- Footer
+local footer = Instance.new("TextLabel")
+footer.Name = "Footer"
+footer.Size = UDim2.new(1, 0, 0, 20)
+footer.Position = UDim2.new(0, 0, 1, 5)
+footer.BackgroundTransparency = 1
+footer.Text = T.footer
+footer.TextColor3 = Color3.fromRGB(150, 150, 150)
+footer.Font = Enum.Font.Gotham
+footer.TextSize = 12
+footer.Parent = mainFrame
+
+-- ============================
+-- ANIMASI
+-- ============================
+-- Set posisi awal untuk animasi
+mainFrame.Size = UDim2.new(0, 0, 0, 0)
+mainFrame.BackgroundTransparency = 1
+overlay.BackgroundTransparency = 1
+
+-- Fade in overlay
+TweenService:Create(overlay, TweenInfo.new(0.4), {
+    BackgroundTransparency = 0.5
+}):Play()
+
+-- Pop in main frame
+TweenService:Create(mainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+    Size = UDim2.new(0, 500, 0, 320)
+}):Play()
+
+-- ============================
+-- FUNGSI CLOSE
+-- ============================
+local function closeUI()
+    TweenService:Create(overlay, TweenInfo.new(0.3), {
+        BackgroundTransparency = 1
+    }):Play()
+    
+    TweenService:Create(mainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
+        Size = UDim2.new(0, 0, 0, 0)
+    }):Play()
+    
+    task.wait(0.35)
+    screenGui:Destroy()
+end
+
+-- Button hover effect
+closeBtn.MouseEnter:Connect(function()
+    TweenService:Create(closeBtn, TweenInfo.new(0.2), {
+        BackgroundColor3 = Color3.fromRGB(240, 60, 60)
+    }):Play()
+    TweenService:Create(closeBtn, TweenInfo.new(0.2), {
+        Size = UDim2.new(0, 210, 0, 48)
+    }):Play()
+end)
+
+closeBtn.MouseLeave:Connect(function()
+    TweenService:Create(closeBtn, TweenInfo.new(0.2), {
+        BackgroundColor3 = Color3.fromRGB(200, 40, 40)
+    }):Play()
+    TweenService:Create(closeBtn, TweenInfo.new(0.2), {
+        Size = UDim2.new(0, 200, 0, 45)
+    }):Play()
+end)
+
+closeBtn.MouseButton1Click:Connect(closeUI)
+
+-- Efek pulse pada icon peringatan
+task.spawn(function()
+    while screenGui.Parent do
+        TweenService:Create(warningIcon, TweenInfo.new(0.8), {
+            TextTransparency = 0.4
+        }):Play()
+        task.wait(0.8)
+        TweenService:Create(warningIcon, TweenInfo.new(0.8), {
+            TextTransparency = 0
+        }):Play()
+        task.wait(0.8)
+    end
+end)
+
+print("[Roblox Support Executor] Patch notification displayed - Language: " .. currentLang)
